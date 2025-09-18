@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskFlow - 仪表盘</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  <!-- 配置Tailwind自定义颜色和字体 -->
+  <script>
+    // 全局Tailwind配置
+    if (!window.tailwindConfigured) {
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#165DFF',
+              success: '#00B42A',
+              warning: '#FF7D00',
+              danger: '#F53F3F',
+              dark: '#1D2129',
+              'gray-600': '#4E5969',
+              'gray-400': '#86909C',
+              'gray-100': '#F2F3F5',
+            },
+            fontFamily: {
+              inter: ['Inter', 'system-ui', 'sans-serif'],
+            },
+          },
+        }
+      };
+      window.tailwindConfigured = true;
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .browser-window {
+        @apply rounded-lg overflow-hidden shadow-xl border border-gray-200 bg-white;
+      }
+      .browser-header {
+        @apply flex items-center px-4 py-3 bg-gray-100 border-b border-gray-200;
+      }
+      .browser-controls {
+        @apply flex space-x-2;
+      }
+      .browser-control {
+        @apply w-3 h-3 rounded-full;
+      }
+      .browser-address {
+        @apply flex-1 mx-4 px-3 py-1 bg-white rounded-full text-sm text-gray-600 border border-gray-300;
+      }
+      .sidebar-item {
+        @apply flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 hover:text-primary transition-colors rounded-md cursor-pointer;
+      }
+      .sidebar-item.active {
+        @apply bg-primary/10 text-primary font-medium;
+      }
+      .stat-card {
+        @apply bg-white rounded-xl shadow-sm border border-gray-100 p-6 transition-all hover:shadow-md;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 font-inter min-h-screen p-4">
+  <!-- 浏览器窗口模拟 -->
+  <div class="browser-window w-full max-w-7xl mx-auto h-[800px] flex flex-col overflow-hidden">
+    <!-- 浏览器头部 -->
+    <div class="browser-header">
+      <div class="browser-controls">
+        <div class="browser-control bg-danger"></div>
+        <div class="browser-control bg-warning"></div>
+        <div class="browser-control bg-success"></div>
+      </div>
+      <div class="browser-address flex items-center">
+        <i class="fa fa-lock text-gray-400 mr-2"></i>
+        <span>taskflow.app/dashboard</span>
+      </div>
+    </div>
+    <!-- 页面内容 -->
+    <div class="flex flex-1 overflow-hidden">
+      <!-- 侧边栏 -->
+      <div class="w-64 bg-white border-r border-gray-200 p-4 flex flex-col overflow-y-auto">
+        <div class="flex items-center mb-8 p-3 bg-primary/10 rounded-lg">
+          <div class="w-10 h-10 bg-primary rounded-md flex items-center justify-center text-white font-bold text-xl mr-3">TF</div>
+          <div>
+            <h1 class="text-lg font-bold text-dark">TaskFlow</h1>
+            <p class="text-xs text-gray-400">高效任务管理</p>
+          </div>
+        </div>
+        <div class="space-y-1 mb-6">
+          <div class="sidebar-item active">
+            <i class="fa fa-dashboard w-5 h-5 mr-3"></i>
+            <span>仪表盘</span>
+          </div>
+          <div class="sidebar-item" onclick="window.location.href='tasks.html'">
+            <i class="fa fa-tasks w-5 h-5 mr-3"></i>
+            <span>任务管理</span>
+          </div>
+          <div class="sidebar-item" onclick="window.location.href='time_tracking.html'">
+            <i class="fa fa-clock-o w-5 h-5 mr-3"></i>
+            <span>时间追踪</span>
+          </div>
+          <div class="sidebar-item" onclick="window.location.href='reports.html'">
+            <i class="fa fa-bar-chart w-5 h-5 mr-3"></i>
+            <span>报表统计</span>
+          </div>
+          <div class="sidebar-item" onclick="window.location.href='calendar.html'">
+            <i class="fa fa-calendar w-5 h-5 mr-3"></i>
+            <span>日历视图</span>
+          </div>
+        </div>
+        <div class="border-t border-gray-100 pt-4 mt-auto">
+          <div class="sidebar-item" onclick="window.location.href='settings.html'">
+            <i class="fa fa-cog w-5 h-5 mr-3"></i>
+            <span>设置</span>
+          </div>
+          <div class="sidebar-item" onclick="window.location.href='help_support.html'">
+            <i class="fa fa-question-circle w-5 h-5 mr-3"></i>
+            <span>帮助与支持</span>
+          </div>
+          <div class="flex items-center p-4 mt-4 bg-gray-100 rounded-md cursor-pointer" onclick="window.location.href='settings.html#account'">
+            <img src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-1.2.1&auto=format&fit=crop&w=50&q=80" alt="张小明的头像 - 高级产品经理" class="w-10 h-10 rounded-full mr-3 object-cover">
+            <div class="flex-1">
+              <p class="text-sm font-medium text-dark">张小明</p>
+              <p class="text-xs text-gray-400">高级产品经理</p>
+            </div>
+            <button class="text-gray-400 hover:text-dark">
+              <i class="fa fa-sign-out"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- 主内容区 -->
+      <div class="flex-1 overflow-y-auto p-6 bg-gray-50">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h2 class="text-2xl font-bold text-dark">仪表盘</h2>
+            <p class="text-gray-400">欢迎回来，今天是星期一，5月13日</p>
+          </div>
+          <div class="flex space-x-3">
+            <button class="p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors">
+              <i class="fa fa-bell-o"></i>
+            </button>
+            <button class="p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors">
+              <i class="fa fa-envelope-o"></i>
+            </button>
+            <button class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors flex items-center">
+              <i class="fa fa-plus mr-2"></i>
+              <span>新建任务</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 页签导航 -->
+        <div class="mb-6 border-b border-gray-200">
+          <nav class="flex -mb-px space-x-8" aria-label="仪表盘页面导航">
+            <button id="tab-overview" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 border-primary font-medium text-primary" onclick="switchTab('overview')" role="tab" aria-selected="true" aria-controls="content-overview">
+              总览
+            </button>
+            <button id="tab-projects" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300" onclick="switchTab('projects')" role="tab" aria-selected="false" aria-controls="content-projects">
+              项目概览
+            </button>
+            <button id="tab-team" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300" onclick="switchTab('team')" role="tab" aria-selected="false" aria-controls="content-team">
+              团队协作
+            </button>
+            <button id="tab-goals" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300" onclick="switchTab('goals')" role="tab" aria-selected="false" aria-controls="content-goals">
+              个人目标
+            </button>
+            <button id="tab-resources" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300" onclick="switchTab('resources')" role="tab" aria-selected="false" aria-controls="content-resources">
+              资源分配
+            </button>
+          </nav>
+        </div>
+
+        <!-- 总览页签内容 -->
+        <div id="content-overview" role="tabpanel" aria-labelledby="tab-overview">
+        <!-- 统计卡片 -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          <div class="stat-card">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-gray-600 font-medium">今日任务</h3>
+              <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                <i class="fa fa-calendar-check-o"></i>
+              </div>
+            </div>
+            <div class="flex items-baseline">
+              <span class="text-3xl font-bold text-dark">8</span>
+              <span class="ml-2 text-success text-sm font-medium">+2 较昨日</span>
+            </div>
+            <div class="mt-4 h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+              <div class="h-full bg-primary rounded-full" style="width: 60%"></div>
+            </div>
+            <p class="text-xs text-gray-400 mt-2">已完成 4/8</p>
+          </div>
+          <div class="stat-card">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-gray-600 font-medium">本周工时</h3>
+              <div class="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center text-success">
+                <i class="fa fa-clock-o"></i>
+              </div>
+            </div>
+            <div class="flex items-baseline">
+              <span class="text-3xl font-bold text-dark">16.5h</span>
+              <span class="ml-2 text-success text-sm font-medium">+3.2h 较上周</span>
+            </div>
+            <div class="mt-4 h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+              <div class="h-full bg-success rounded-full" style="width: 41%"></div>
+            </div>
+            <p class="text-xs text-gray-400 mt-2">目标 40h/周</p>
+          </div>
+          <div class="stat-card">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-gray-600 font-medium">待办任务</h3>
+              <div class="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center text-warning">
+                <i class="fa fa-list-ul"></i>
+              </div>
+            </div>
+            <div class="flex items-baseline">
+              <span class="text-3xl font-bold text-dark">12</span>
+              <span class="ml-2 text-danger text-sm font-medium">+4 较昨日</span>
+            </div>
+            <div class="mt-4 h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+              <div class="h-full bg-warning rounded-full" style="width: 75%"></div>
+            </div>
+            <p class="text-xs text-gray-400 mt-2">高优先级 5 项</p>
+          </div>
+          <div class="stat-card">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-gray-600 font-medium">已完成项目</h3>
+              <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                <i class="fa fa-check-square-o"></i>
+              </div>
+            </div>
+            <div class="flex items-baseline">
+              <span class="text-3xl font-bold text-dark">3</span>
+              <span class="ml-2 text-success text-sm font-medium">+1 本月</span>
+            </div>
+            <div class="mt-4 h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+              <div class="h-full bg-primary rounded-full" style="width: 30%"></div>
+            </div>
+            <p class="text-xs text-gray-400 mt-2">进行中 7 项</p>
+          </div>
+        </div>
+        <!-- 图表和任务列表 -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6 overflow-hidden">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-lg font-bold text-dark">时间分布</h3>
+              <div class="flex space-x-2">
+                <button class="px-3 py-1 text-xs font-medium bg-primary/10 text-primary rounded-md">周</button>
+                <button class="px-3 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-md transition-colors">月</button>
+                <button class="px-3 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-md transition-colors">年</button>
+              </div>
+            </div>
+            <div class="h-64">
+              <canvas id="timeDistributionChart"></canvas>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 overflow-hidden">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-lg font-bold text-dark">任务分类</h3>
+              <button class="text-gray-400 hover:text-dark"><i class="fa fa-ellipsis-v"></i></button>
+            </div>
+            <div class="h-64">
+              <canvas id="taskCategoryChart"></canvas>
+            </div>
+          </div>
+        </div>
+        <!-- 最近任务 -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-bold text-dark">最近任务</h3>
+            <a href="#" class="text-sm font-medium text-primary hover:text-primary/80 transition-colors">查看全部</a>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">任务名称</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">截止日期</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">优先级</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <tr class="hover:bg-gray-50 transition-colors">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center bg-blue-100 text-blue-500 rounded-md mr-3">
+                        <i class="fa fa-file-text-o"></i>
+                      </div>
+                      <div>
+                        <div class="text-sm font-medium text-dark">产品需求文档撰写</div>
+                        <div class="text-xs text-gray-400">产品研发</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">2023-05-15</td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-danger/10 text-danger">高</span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-warning/10 text-warning">进行中</span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <a href="#" class="text-primary hover:text-primary/80 mr-3">编辑</a>
+                    <a href="#" class="text-gray-600 hover:text-gray-900">查看</a>
+                  </td>
+                </tr>
+                <tr class="hover:bg-gray-50 transition-colors">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center bg-green-100 text-green-500 rounded-md mr-3">
+                        <i class="fa fa-bar-chart"></i>
+                      </div>
+                      <div>
+                        <div class="text-sm font-medium text-dark">Q2季度报表生成</div>
+                        <div class="text-xs text-gray-400">数据分析</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">2023-05-18</td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-warning/10 text-warning">中</span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-600">未开始</span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <a href="#" class="text-primary hover:text-primary/80 mr-3">编辑</a>
+                    <a href="#" class="text-gray-600 hover:text-gray-900">查看</a>
+                  </td>
+                </tr>
+                <tr class="hover:bg-gray-50 transition-colors">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center bg-purple-100 text-purple-500 rounded-md mr-3">
+                        <i class="fa fa-users"></i>
+                      </div>
+                      <div>
+                        <div class="text-sm font-medium text-dark">团队周会</div>
+                        <div class="text-xs text-gray-400">项目管理</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">2023-05-15</td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-600">低</span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-success/10 text-success">已完成</span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <a href="#" class="text-primary hover:text-primary/80 mr-3">编辑</a>
+                    <a href="#" class="text-gray-600 hover:text-gray-900">查看</a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <!-- 即将截止的任务 -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-bold text-dark">即将截止的任务</h3>
+            <a href="#" class="text-sm font-medium text-primary hover:text-primary/80 transition-colors">查看全部</a>
+          </div>
+          <div class="space-y-4">
+            <div class="flex items-center p-3 bg-gray-50 rounded-lg hover:shadow-sm transition-shadow">
+              <div class="flex-shrink-0 mr-3">
+                <input type="checkbox" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary">
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-dark truncate">UI设计稿评审</p>
+                <p class="text-xs text-gray-400">今天 15:00</p>
+              </div>
+              <div class="flex-shrink-0 ml-4 px-2 py-1 text-xs font-medium bg-danger/10 text-danger rounded-full">
+                紧急
+              </div>
+            </div>
+            <div class="flex items-center p-3 bg-gray-50 rounded-lg hover:shadow-sm transition-shadow">
+              <div class="flex-shrink-0 mr-3">
+                <input type="checkbox" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary">
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-dark truncate">客户需求沟通</p>
+                <p class="text-xs text-gray-400">明天 10:30</p>
+              </div>
+              <div class="flex-shrink-0 ml-4 px-2 py-1 text-xs font-medium bg-warning/10 text-warning rounded-full">
+                高优先级
+              </div>
+            </div>
+            <div class="flex items-center p-3 bg-gray-50 rounded-lg hover:shadow-sm transition-shadow">
+              <div class="flex-shrink-0 mr-3">
+                <input type="checkbox" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary">
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-dark truncate">前端代码审核</p>
+                <p class="text-xs text-gray-400">明天 16:00</p>
+              </div>
+              <div class="flex-shrink-0 ml-4 px-2 py-1 text-xs font-medium bg-warning/10 text-warning rounded-full">
+                高优先级
+              </div>
+            </div>
+          </div>
+        </div>
+        </div>
+
+        <!-- 项目概览页签内容 -->
+        <div id="content-projects" class="hidden" role="tabpanel" aria-labelledby="tab-projects">
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-lg font-bold text-dark">项目进度</h3>
+              <button class="text-sm font-medium text-primary hover:text-primary/80 transition-colors">管理项目</button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">项目名称</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">开始日期</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">截止日期</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">进度</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center bg-primary/10 text-primary rounded-md mr-3">
+                          <i class="fa fa-cube"></i>
+                        </div>
+                        <div>
+                          <div class="text-sm font-medium text-dark">TaskFlow 2.0</div>
+                          <div class="text-xs text-gray-400">产品研发</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">2023-04-01</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">2023-06-30</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div class="bg-primary h-2.5 rounded-full" style="width: 65%"></div>
+                      </div>
+                      <span class="text-xs text-gray-600 mt-1 block">65%</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-warning/10 text-warning">进行中</span>
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center bg-success/10 text-success rounded-md mr-3">
+                          <i class="fa fa-line-chart"></i>
+                        </div>
+                        <div>
+                          <div class="text-sm font-medium text-dark">数据分析平台</div>
+                          <div class="text-xs text-gray-400">数据分析</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">2023-03-15</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">2023-05-20</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div class="bg-success h-2.5 rounded-full" style="width: 90%"></div>
+                      </div>
+                      <span class="text-xs text-gray-600 mt-1 block">90%</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-warning/10 text-warning">进行中</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+              <h3 class="text-lg font-bold text-dark mb-4">项目里程碑</h3>
+              <div class="space-y-4">
+                <div class="relative pl-6 pb-6 border-l-2 border-primary">
+                  <div class="absolute w-4 h-4 bg-primary rounded-full -left-2 top-0"></div>
+                  <h4 class="font-medium text-dark">需求分析完成</h4>
+                  <p class="text-sm text-gray-400">2023-04-15</p>
+                  <p class="text-sm text-gray-600 mt-1">完成了所有用户需求的收集和分析</p>
+                </div>
+                <div class="relative pl-6 pb-6 border-l-2 border-primary">
+                  <div class="absolute w-4 h-4 bg-primary rounded-full -left-2 top-0"></div>
+                  <h4 class="font-medium text-dark">UI设计评审</h4>
+                  <p class="text-sm text-gray-400">2023-04-30</p>
+                  <p class="text-sm text-gray-600 mt-1">完成了UI设计稿的内部评审</p>
+                </div>
+                <div class="relative pl-6">
+                  <div class="absolute w-4 h-4 bg-gray-300 rounded-full -left-2 top-0"></div>
+                  <h4 class="font-medium text-dark text-gray-500">Beta版本发布</h4>
+                  <p class="text-sm text-gray-400">2023-05-30</p>
+                  <p class="text-sm text-gray-500 mt-1">计划发布Beta版本供内部测试</p>
+                </div>
+              </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+              <h3 class="text-lg font-bold text-dark mb-4">项目风险</h3>
+              <div class="space-y-4">
+                <div class="p-4 bg-danger/5 border border-danger/10 rounded-lg">
+                  <div class="flex items-center justify-between mb-2">
+                    <h4 class="font-medium text-dark">开发资源不足</h4>
+                    <span class="px-2 py-1 text-xs font-medium bg-danger/10 text-danger rounded-full">高风险</span>
+                  </div>
+                  <p class="text-sm text-gray-600">前端开发团队人手不足，可能导致项目延期</p>
+                </div>
+                <div class="p-4 bg-warning/5 border border-warning/10 rounded-lg">
+                  <div class="flex items-center justify-between mb-2">
+                    <h4 class="font-medium text-dark">第三方API集成问题</h4>
+                    <span class="px-2 py-1 text-xs font-medium bg-warning/10 text-warning rounded-full">中风险</span>
+                  </div>
+                  <p class="text-sm text-gray-600">与支付系统的API集成可能存在兼容性问题</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 团队协作页签内容 -->
+        <div id="content-team" class="hidden" role="tabpanel" aria-labelledby="tab-team">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+              <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-bold text-dark">团队成员</h3>
+                <button class="text-sm font-medium text-primary hover:text-primary/80 transition-colors">查看全部</button>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <div class="flex items-center p-4 bg-gray-50 rounded-lg hover:shadow-sm transition-shadow">
+                  <img src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-1.2.1&auto=format&fit=crop&w=50&q=80" alt="用户头像" class="w-12 h-12 rounded-full mr-3 object-cover">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-dark truncate">张小明</p>
+                    <p class="text-xs text-gray-400">高级产品经理</p>
+                  </div>
+                  <div class="flex-shrink-0 ml-2">
+                    <span class="inline-flex items-center justify-center w-2 h-2 rounded-full bg-success"></span>
+                  </div>
+                </div>
+                <div class="flex items-center p-4 bg-gray-50 rounded-lg hover:shadow-sm transition-shadow">
+                  <img src="https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?ixlib=rb-1.2.1&auto=format&fit=crop&w=50&q=80" alt="用户头像" class="w-12 h-12 rounded-full mr-3 object-cover">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-dark truncate">李华</p>
+                    <p class="text-xs text-gray-400">前端开发</p>
+                  </div>
+                  <div class="flex-shrink-0 ml-2">
+                    <span class="inline-flex items-center justify-center w-2 h-2 rounded-full bg-success"></span>
+                  </div>
+                </div>
+                <div class="flex items-center p-4 bg-gray-50 rounded-lg hover:shadow-sm transition-shadow">
+                  <img src="https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?ixlib=rb-1.2.1&auto=format&fit=crop&w=50&q=80" alt="用户头像" class="w-12 h-12 rounded-full mr-3 object-cover">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-dark truncate">王强</p>
+                    <p class="text-xs text-gray-400">后端开发</p>
+                  </div>
+                  <div class="flex-shrink-0 ml-2">
+                    <span class="inline-flex items-center justify-center w-2 h-2 rounded-full bg-gray-300"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+              <h3 class="text-lg font-bold text-dark mb-4">团队活跃度</h3>
+              <div class="h-48 mb-4">
+                <canvas id="teamActivityChart"></canvas>
+              </div>
+              <div class="flex items-center justify-between text-sm text-gray-600">
+                <span>本周任务完成率</span>
+                <span class="font-medium text-success">85%</span>
+              </div>
+              <div class="mt-2 h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full bg-success rounded-full" style="width: 85%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-lg font-bold text-dark">团队动态</h3>
+              <button class="text-sm font-medium text-primary hover:text-primary/80 transition-colors">查看全部</button>
+            </div>
+            <div class="space-y-4">
+              <div class="flex p-3 border-b border-gray-100">
+                <img src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-1.2.1&auto=format&fit=crop&w=50&q=80" alt="用户头像" class="w-10 h-10 rounded-full mr-3 object-cover flex-shrink-0 mt-1">
+                <div class="flex-1">
+                  <p class="text-sm"><span class="font-medium text-dark">张小明</span> 创建了新任务 <span class="font-medium text-primary">UI设计稿评审</span></p>
+                  <p class="text-xs text-gray-400 mt-1">今天 10:30</p>
+                </div>
+              </div>
+              <div class="flex p-3 border-b border-gray-100">
+                <img src="https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?ixlib=rb-1.2.1&auto=format&fit=crop&w=50&q=80" alt="用户头像" class="w-10 h-10 rounded-full mr-3 object-cover flex-shrink-0 mt-1">
+                <div class="flex-1">
+                  <p class="text-sm"><span class="font-medium text-dark">李华</span> 完成了任务 <span class="font-medium text-success">前端组件开发</span></p>
+                  <p class="text-xs text-gray-400 mt-1">昨天 16:45</p>
+                </div>
+              </div>
+              <div class="flex p-3">
+                <img src="https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?ixlib=rb-1.2.1&auto=format&fit=crop&w=50&q=80" alt="用户头像" class="w-10 h-10 rounded-full mr-3 object-cover flex-shrink-0 mt-1">
+                <div class="flex-1">
+                  <p class="text-sm"><span class="font-medium text-dark">王强</span> 更新了项目 <span class="font-medium text-primary">TaskFlow 2.0</span> 的进度</p>
+                  <p class="text-xs text-gray-400 mt-1">昨天 14:20</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 个人目标页签内容 -->
+        <div id="content-goals" class="hidden" role="tabpanel" aria-labelledby="tab-goals">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+              <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-bold text-dark">我的目标</h3>
+                <button class="px-3 py-1 text-sm font-medium bg-primary/10 text-primary rounded-md hover:bg-primary/20 transition-colors">
+                  <i class="fa fa-plus mr-1"></i> 新建目标
+                </button>
+              </div>
+              <div class="space-y-4">
+                <div class="p-4 border border-gray-100 rounded-lg hover:shadow-sm transition-shadow">
+                  <div class="flex items-center justify-between mb-2">
+                    <h4 class="font-medium text-dark">完成TaskFlow 2.0需求文档</h4>
+                    <span class="px-2 py-1 text-xs font-medium bg-success/10 text-success rounded-full">已完成</span>
+                  </div>
+                  <div class="mt-2 h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-success rounded-full" style="width: 100%"></div>
+                  </div>
+                  <p class="text-xs text-gray-400 mt-1">截止日期: 2023-04-30</p>
+                </div>
+                <div class="p-4 border border-gray-100 rounded-lg hover:shadow-sm transition-shadow">
+                  <div class="flex items-center justify-between mb-2">
+                    <h4 class="font-medium text-dark">提升团队协作效率</h4>
+                    <span class="px-2 py-1 text-xs font-medium bg-warning/10 text-warning rounded-full">进行中</span>
+                  </div>
+                  <div class="mt-2 h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-warning rounded-full" style="width: 60%"></div>
+                  </div>
+                  <p class="text-xs text-gray-400 mt-1">截止日期: 2023-06-15</p>
+                </div>
+                <div class="p-4 border border-gray-100 rounded-lg hover:shadow-sm transition-shadow">
+                  <div class="flex items-center justify-between mb-2">
+                    <h4 class="font-medium text-dark">学习新的项目管理工具</h4>
+                    <span class="px-2 py-1 text-xs font-medium bg-warning/10 text-warning rounded-full">进行中</span>
+                  </div>
+                  <div class="mt-2 h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-warning rounded-full" style="width: 30%"></div>
+                  </div>
+                  <p class="text-xs text-gray-400 mt-1">截止日期: 2023-07-01</p>
+                </div>
+              </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+              <h3 class="text-lg font-bold text-dark mb-4">个人绩效</h3>
+              <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="p-4 bg-gray-50 rounded-lg text-center">
+                  <p class="text-2xl font-bold text-primary mb-1">92%</p>
+                  <p class="text-sm text-gray-600">任务完成率</p>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-lg text-center">
+                  <p class="text-2xl font-bold text-success mb-1">168h</p>
+                  <p class="text-sm text-gray-600">本月工时</p>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-lg text-center">
+                  <p class="text-2xl font-bold text-warning mb-1">5</p>
+                  <p class="text-sm text-gray-600">逾期任务</p>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-lg text-center">
+                  <p class="text-2xl font-bold text-primary mb-1">12</p>
+                  <p class="text-sm text-gray-600">已完成项目</p>
+                </div>
+              </div>
+              <h4 class="font-medium text-dark mb-3">技能提升</h4>
+              <div class="space-y-3">
+                <div>
+                  <div class="flex items-center justify-between text-sm mb-1">
+                    <span>项目管理</span>
+                    <span>85%</span>
+                  </div>
+                  <div class="h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-primary rounded-full" style="width: 85%"></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex items-center justify-between text-sm mb-1">
+                    <span>产品设计</span>
+                    <span>78%</span>
+                  </div>
+                  <div class="h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-primary rounded-full" style="width: 78%"></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex items-center justify-between text-sm mb-1">
+                    <span>数据分析</span>
+                    <span>65%</span>
+                  </div>
+                  <div class="h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-primary rounded-full" style="width: 65%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 资源分配页签内容 -->
+        <div id="content-resources" class="hidden" role="tabpanel" aria-labelledby="tab-resources">
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-lg font-bold text-dark">资源利用率</h3>
+              <div class="flex space-x-2">
+                <button class="px-3 py-1 text-xs font-medium bg-primary/10 text-primary rounded-md">周</button>
+                <button class="px-3 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-md transition-colors">月</button>
+                <button class="px-3 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-md transition-colors">季</button>
+              </div>
+            </div>
+            <div class="h-64 mb-6">
+              <canvas id="resourceUtilizationChart"></canvas>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+              <h3 class="text-lg font-bold text-dark mb-4">团队成员工作量</h3>
+              <div class="space-y-4">
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div class="flex items-center">
+                    <img src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-1.2.1&auto=format&fit=crop&w=50&q=80" alt="张小明的头像 - 高级产品经理" class="w-10 h-10 rounded-full mr-3 object-cover">
+                    <div>
+                      <p class="text-sm font-medium text-dark">张小明</p>
+                      <p class="text-xs text-gray-400">高级产品经理</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center">
+                    <span class="text-sm font-medium text-danger mr-2">95%</span>
+                    <div class="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div class="h-full bg-danger rounded-full" style="width: 95%"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div class="flex items-center">
+                    <img src="https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?ixlib=rb-1.2.1&auto=format&fit=crop&w=50&q=80" alt="用户头像" class="w-10 h-10 rounded-full mr-3 object-cover">
+                    <div>
+                      <p class="text-sm font-medium text-dark">李华</p>
+                      <p class="text-xs text-gray-400">前端开发</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center">
+                    <span class="text-sm font-medium text-warning mr-2">75%</span>
+                    <div class="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div class="h-full bg-warning rounded-full" style="width: 75%"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div class="flex items-center">
+                    <img src="https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?ixlib=rb-1.2.1&auto=format&fit=crop&w=50&q=80" alt="用户头像" class="w-10 h-10 rounded-full mr-3 object-cover">
+                    <div>
+                      <p class="text-sm font-medium text-dark">王强</p>
+                      <p class="text-xs text-gray-400">后端开发</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center">
+                    <span class="text-sm font-medium text-success mr-2">50%</span>
+                    <div class="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div class="h-full bg-success rounded-full" style="width: 50%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+              <h3 class="text-lg font-bold text-dark mb-4">资源分配建议</h3>
+              <div class="space-y-4">
+                <div class="p-4 bg-primary/5 border border-primary/10 rounded-lg">
+                  <h4 class="font-medium text-dark mb-2">平衡工作量</h4>
+                  <p class="text-sm text-gray-600">张小明的工作量过高(95%)，建议将部分任务分配给王强(50%)</p>
+                  <button class="mt-3 px-3 py-1 text-xs font-medium bg-primary/10 text-primary rounded-md hover:bg-primary/20 transition-colors">查看详情</button>
+                </div>
+                <div class="p-4 bg-warning/5 border border-warning/10 rounded-lg">
+                  <h4 class="font-medium text-dark mb-2">项目延期风险</h4>
+                  <p class="text-sm text-gray-600">TaskFlow 2.0项目资源不足，建议增加1名前端开发人员</p>
+                  <button class="mt-3 px-3 py-1 text-xs font-medium bg-warning/10 text-warning rounded-md hover:bg-warning/20 transition-colors">查看详情</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  <script>
+    // 页签切换功能
+    function switchTab(tabName) {
+      // 隐藏所有内容
+      document.querySelectorAll('[id^="content-"]').forEach(content => {
+        content.classList.add('hidden');
+        content.setAttribute('aria-hidden', 'true');
+      });
+      
+      // 显示选中的内容
+      const targetContent = document.getElementById('content-' + tabName);
+      if (targetContent) {
+        targetContent.classList.remove('hidden');
+        targetContent.setAttribute('aria-hidden', 'false');
+      }
+      
+      // 更新页签样式和ARIA属性
+      document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('border-primary', 'text-primary');
+        button.classList.add('border-transparent', 'text-gray-500');
+        button.setAttribute('aria-selected', 'false');
+      });
+      
+      // 更新选中页签的样式和ARIA属性
+      const activeTab = document.getElementById('tab-' + tabName);
+      if (activeTab) {
+        activeTab.classList.remove('border-transparent', 'text-gray-500');
+        activeTab.classList.add('border-primary', 'text-primary');
+        activeTab.setAttribute('aria-selected', 'true');
+        
+        // 聚焦到当前活跃页签
+        activeTab.focus();
+      }
+    }
+
+    // 初始化图表
+    document.addEventListener('DOMContentLoaded', function() {
+      try {
+        // 检查Chart.js是否加载
+        if (typeof Chart === 'undefined') {
+          console.warn('Chart.js 未加载，跳过图表初始化');
+          return;
+        }
+
+        // 时间分布图表
+        const timeCtx = document.getElementById('timeDistributionChart');
+        if (timeCtx) {
+          const timeChart = new Chart(timeCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+              labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+              datasets: [{
+                label: '工作时间(小时)',
+                data: [2.5, 3.2, 1.8, 4.0, 5.0, 0, 0],
+                backgroundColor: '#165DFF',
+                borderRadius: 4,
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  display: false
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  max: 8
+                }
+              }
+            }
+          });
+        }
+
+      // 任务分类图表
+      const categoryCtx = document.getElementById('taskCategoryChart').getContext('2d');
+      const categoryChart = new Chart(categoryCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['产品研发', '数据分析', '项目管理', '市场推广', '其他'],
+          datasets: [{
+            data: [40, 20, 15, 15, 10],
+            backgroundColor: [
+              '#165DFF',
+              '#00B42A',
+              '#FF7D00',
+              '#722ED1',
+              '#86909C'
+            ],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '70%',
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                boxWidth: 12,
+                padding: 15
+              }
+            }
+          }
+        }
+      });
+
+      // 团队活跃度图表
+      const teamActivityCtx = document.getElementById('teamActivityChart');
+      if (teamActivityCtx) {
+        const teamActivityChart = new Chart(teamActivityCtx, {
+          type: 'line',
+          data: {
+            labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+            datasets: [{
+              label: '团队活跃度',
+              data: [65, 59, 80, 81, 56, 55, 40],
+              fill: true,
+              backgroundColor: 'rgba(22, 93, 255, 0.1)',
+              borderColor: '#165DFF',
+              tension: 0.3
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 100
+              }
+            }
+          }
+        });
+      }
+
+      // 资源利用率图表
+      const resourceUtilizationCtx = document.getElementById('resourceUtilizationChart');
+      if (resourceUtilizationCtx) {
+        const resourceUtilizationChart = new Chart(resourceUtilizationCtx, {
+          type: 'bar',
+          data: {
+            labels: ['张小明', '李华', '王强', '赵晓', '孙丽'],
+            datasets: [{
+              label: '已分配',
+              data: [95, 75, 50, 65, 80],
+              backgroundColor: '#165DFF',
+              borderRadius: 4,
+            }, {
+              label: '可用',
+              data: [5, 25, 50, 35, 20],
+              backgroundColor: '#E8F3FF',
+              borderRadius: 4,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'top',
+              }
+            },
+            scales: {
+              x: {
+                stacked: true,
+              },
+              y: {
+                stacked: true,
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                  callback: function(value) {
+                    return value + '%';
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      } catch (error) {
+        console.error('初始化图表时发生错误:', error);
+      }
+    });
+  </script>
+</body>
+</html>

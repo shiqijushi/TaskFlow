@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskFlow - 日历视图</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  <!-- 配置Tailwind自定义颜色和字体 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            success: '#00B42A',
+            warning: '#FF7D00',
+            danger: '#F53F3F',
+            dark: '#1D2129',
+            'gray-600': '#4E5969',
+            'gray-400': '#86909C',
+            'gray-100': '#F2F3F5',
+          },
+          fontFamily: {
+            inter: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .browser-window {
+        @apply rounded-lg overflow-hidden shadow-xl border border-gray-200 bg-white;
+      }
+      .browser-header {
+        @apply flex items-center px-4 py-3 bg-gray-100 border-b border-gray-200;
+      }
+      .browser-controls {
+        @apply flex space-x-2;
+      }
+      .browser-control {
+        @apply w-3 h-3 rounded-full;
+      }
+      .browser-address {
+        @apply flex-1 mx-4 px-3 py-1 bg-white rounded-full text-sm text-gray-600 border border-gray-300;
+      }
+      .sidebar-item {
+        @apply flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 hover:text-primary transition-colors rounded-md cursor-pointer;
+      }
+      .sidebar-item.active {
+        @apply bg-primary/10 text-primary font-medium;
+      }
+      .calendar-card {
+        @apply bg-white rounded-xl shadow-sm border border-gray-100 transition-all hover:shadow-md;
+      }
+      .calendar-day {
+        @apply h-16 sm:h-20 p-1 relative cursor-pointer hover:bg-gray-50 rounded-md transition-colors;
+      }
+      .calendar-day.has-event {
+        @apply bg-primary/5;
+      }
+      .calendar-event {
+        @apply text-xs px-1 rounded truncate mb-1 whitespace-nowrap;
+      }
+      .event-dot {
+        @apply w-1.5 h-1.5 rounded-full absolute bottom-1 right-1;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 font-inter min-h-screen p-4">
+  <!-- 浏览器窗口模拟 -->
+  <div class="browser-window w-full max-w-7xl mx-auto h-[800px] flex flex-col overflow-hidden">
+    <!-- 浏览器头部 -->
+    <div class="browser-header">
+      <div class="browser-controls">
+        <div class="browser-control bg-danger"></div>
+        <div class="browser-control bg-warning"></div>
+        <div class="browser-control bg-success"></div>
+      </div>
+      <div class="browser-address flex items-center">
+        <i class="fa fa-lock text-gray-400 mr-2"></i>
+        <span>taskflow.app/calendar</span>
+      </div>
+    </div>
+    <!-- 页面内容 -->
+    <div class="flex flex-1 overflow-hidden">
+      <!-- 侧边栏 -->
+      <div class="w-64 bg-white border-r border-gray-200 p-4 flex flex-col overflow-y-auto">
+        <div class="flex items-center mb-8 p-3 bg-primary/10 rounded-lg">
+          <div class="w-10 h-10 bg-primary rounded-md flex items-center justify-center text-white font-bold text-xl mr-3">TF</div>
+          <div>
+            <h1 class="text-lg font-bold text-dark">TaskFlow</h1>
+            <p class="text-xs text-gray-400">高效任务管理</p>
+          </div>
+        </div>
+        <div class="space-y-1 mb-6">
+          <div class="sidebar-item" onclick="window.location.href='dashboard.html'"><i class="fa fa-dashboard w-5 h-5 mr-3"></i><span>仪表盘</span></div>
+          <div class="sidebar-item" onclick="window.location.href='tasks.html'"><i class="fa fa-tasks w-5 h-5 mr-3"></i><span>任务管理</span></div>
+          <div class="sidebar-item" onclick="window.location.href='time_tracking.html'"><i class="fa fa-clock-o w-5 h-5 mr-3"></i><span>时间追踪</span></div>
+          <div class="sidebar-item" onclick="window.location.href='reports.html'"><i class="fa fa-bar-chart w-5 h-5 mr-3"></i><span>报表统计</span></div>
+          <div class="sidebar-item active"><i class="fa fa-calendar w-5 h-5 mr-3"></i><span>日历视图</span></div>
+        </div>
+        <div class="mb-6">
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-4 mb-2">日历视图</h3>
+          <div class="space-y-1">
+            <div class="sidebar-item bg-primary/10 text-primary"><i class="fa fa-th-large w-5 h-5 mr-3"></i><span>月视图</span></div>
+            <div class="sidebar-item"><i class="fa fa-th w-5 h-5 mr-3"></i><span>周视图</span></div>
+            <div class="sidebar-item"><i class="fa fa-list w-5 h-5 mr-3"></i><span>日视图</span></div>
+          </div>
+        </div>
+        <div class="border-t border-gray-100 pt-4 mt-auto">
+          <div class="sidebar-item" onclick="window.location.href='settings.html'"><i class="fa fa-cog w-5 h-5 mr-3"></i><span>设置</span></div>
+          <div class="sidebar-item" onclick="window.location.href='help_support.html'"><i class="fa fa-question-circle w-5 h-5 mr-3"></i><span>帮助与支持</span></div>
+          <div class="flex items-center p-4 mt-4 bg-gray-100 rounded-md cursor-pointer" onclick="window.location.href='settings.html#account'">
+            <img src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-1.2.1&auto=format&fit=crop&w=50&q=80" alt="用户头像" class="w-10 h-10 rounded-full mr-3 object-cover">
+            <div class="flex-1">
+              <p class="text-sm font-medium text-dark">张小明</p>
+              <p class="text-xs text-gray-400">高级产品经理</p>
+            </div>
+            <button class="text-gray-400 hover:text-dark"><i class="fa fa-sign-out"></i></button>
+          </div>
+        </div>
+      </div>
+      <!-- 主内容区 -->
+      <div class="flex-1 overflow-y-auto p-6 bg-gray-50">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+          <div>
+            <h2 class="text-2xl font-bold text-dark">日历视图</h2>
+            <p class="text-gray-400">查看和管理你的日程安排</p>
+          </div>
+          <div class="flex flex-wrap gap-3">
+            <div class="flex items-center space-x-2">
+              <button class="p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors" onclick="prevMonth()">
+                <i class="fa fa-chevron-left"></i>
+              </button>
+              <h3 class="text-lg font-medium text-dark" id="currentMonth">2023年5月</h3>
+              <button class="p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors" onclick="nextMonth()">
+                <i class="fa fa-chevron-right"></i>
+              </button>
+            </div>
+            <div class="flex items-center space-x-2" id="viewSwitcher">
+              <button class="px-3 py-1.5 bg-primary text-white rounded-md text-sm" onclick="switchView('month')">月</button>
+              <button class="px-3 py-1.5 text-gray-600 hover:bg-gray-100 rounded-md text-sm" onclick="switchView('week')">周</button>
+              <button class="px-3 py-1.5 text-gray-600 hover:bg-gray-100 rounded-md text-sm" onclick="switchView('day')">日</button>
+            </div>
+            <button class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors flex items-center">
+              <i class="fa fa-plus mr-2"></i><span>添加事件</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 日历主体 -->
+        <div class="calendar-card mb-6 overflow-hidden" id="calendarContainer">
+          <!-- 月视图 -->
+          <div id="monthView" class="calendar-view">
+            <!-- 星期标题 -->
+            <div class="grid grid-cols-7 border-b border-gray-200">
+              <div class="px-4 py-3 text-center text-sm font-medium text-gray-500 bg-gray-50">周日</div>
+              <div class="px-4 py-3 text-center text-sm font-medium text-gray-500 bg-gray-50">周一</div>
+              <div class="px-4 py-3 text-center text-sm font-medium text-gray-500 bg-gray-50">周二</div>
+              <div class="px-4 py-3 text-center text-sm font-medium text-gray-500 bg-gray-50">周三</div>
+              <div class="px-4 py-3 text-center text-sm font-medium text-gray-500 bg-gray-50">周四</div>
+              <div class="px-4 py-3 text-center text-sm font-medium text-gray-500 bg-gray-50">周五</div>
+              <div class="px-4 py-3 text-center text-sm font-medium text-gray-500 bg-gray-50">周六</div>
+            </div>
+            <!-- 日历格子 -->
+            <div class="grid grid-cols-7" id="calendarDays">
+              <!-- 上个月的日期 -->
+              <div class="calendar-day text-gray-300 p-1">
+                <div class="text-right pr-2 font-medium">30</div>
+              </div>
+              <!-- 当月日期 -->
+              <div class="calendar-day p-1">
+                <div class="text-right pr-2 font-medium">1</div>
+              </div>
+              <div class="calendar-day p-1">
+                <div class="text-right pr-2 font-medium">2</div>
+              </div>
+              <div class="calendar-day p-1">
+                <div class="text-right pr-2 font-medium">3</div>
+              </div>
+              <div class="calendar-day p-1">
+                <div class="text-right pr-2 font-medium">4</div>
+              </div>
+              <div class="calendar-day p-1">
+                <div class="text-right pr-2 font-medium">5</div>
+              </div>
+              <div class="calendar-day p-1">
+                <div class="text-right pr-2 font-medium">6</div>
+              </div>
+              <div class="calendar-day p-1">
+                <div class="text-right pr-2 font-medium">7</div>
+              </div>
+              <div class="calendar-day p-1">
+                <div class="text-right pr-2 font-medium">8</div>
+              </div>
+              <div class="calendar-day p-1">
+                <div class="text-right pr-2 font-medium">9</div>
+              </div>
+              <div class="calendar-day p-1">
+                <div class="text-right pr-2 font-medium">10</div>
+              </div>
+              <div class="calendar-day p-1">
+                <div class="text-right pr-2 font-medium">11</div>
+              </div>
+              <div class="calendar-day has-event p-1 relative">
+                <div class="text-right pr-2 font-medium">12</div>
+                <div class="calendar-event bg-primary/80 text-white">产品评审会议</div>
+                <div class="calendar-event bg-warning/80 text-white">需求文档截止</div>
+                <div class="event-dot bg-primary"></div>
+              </div>
+              <div class="calendar-day has-event p-1 relative">
+                <div class="text-right pr-2 font-medium" id="today">13</div>
+                <div class="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-xs absolute top-1 right-1 font-medium">13</div>
+                <div class="calendar-event bg-success/80 text-white mt-6">团队周会</div>
+                <div class="event-dot bg-success"></div>
+              </div>
+              <div class="calendar-day p-1">
+                <div class="text-right pr-2 font-medium">14</div>
+              </div>
+              <div class="calendar-day p-1">
+                <div class="text-right pr-2 font-medium">15</div>
+              </div>
+              <div class="calendar-day has-event p-1 relative">
+                <div class="text-right pr-2 font-medium">16</div>
+                <div class="calendar-event bg-danger/80 text-white">项目截止日期</div>
+                <div class="event-dot bg-danger"></div>
+              </div>
+              <div class="calendar-day p-1">
+                <div class="text-right pr-2 font-medium">17</div>
+              </div>
+              <div class="calendar-day p-1">
+                <div class="text-right pr-2 font-medium">18</div>
+              </div>
+              <div class="calendar-day p-1">
+                <div class="text-right pr-2 font-medium">19</div>
+              </div>
+              <div class="calendar-day p-1">
+                <div class="text-right pr-2 font-medium">20</div>
+              </div>
+              <div class="calendar-day p-1">
+                <div class="text-right pr-2 font-medium">21</div>
+              </div>
+              <div class="calendar-day p-1">
+                <div class="text-right pr-2 font-medium">22</div>
+              </div>
+              <div class="calendar-day has-event p-1 relative">
+                <div class="text-right pr-2 font-medium">23</div>
+                <div class="calendar-event bg-primary/80 text-white">客户演示</div>
+                <div class="event-dot bg-primary"></div>
+              </div>
+              <div class="calendar-day p-1">
+                <div class="text-right pr-2 font-medium">24</div>
+              </div>
+              <div class="calendar-day p-1">
+                <div class="text-right pr-2 font-medium">25</div>
+              </div>
+              <div class="calendar-day p-1">
+                <div class="text-right pr-2 font-medium">26</div>
+              </div>
+              <div class="calendar-day p-1">
+                <div class="text-right pr-2 font-medium">27</div>
+              </div>
+              <div class="calendar-day p-1">
+                <div class="text-right pr-2 font-medium">28</div>
+              </div>
+              <div class="calendar-day p-1">
+                <div class="text-right pr-2 font-medium">29</div>
+              </div>
+              <div class="calendar-day p-1">
+                <div class="text-right pr-2 font-medium">30</div>
+              </div>
+              <div class="calendar-day p-1">
+                <div class="text-right pr-2 font-medium">31</div>
+              </div>
+              <!-- 下个月的日期 -->
+              <div class="calendar-day text-gray-300 p-1">
+                <div class="text-right pr-2 font-medium">1</div>
+              </div>
+              <div class="calendar-day text-gray-300 p-1">
+                <div class="text-right pr-2 font-medium">2</div>
+              </div>
+              <div class="calendar-day text-gray-300 p-1">
+                <div class="text-right pr-2 font-medium">3</div>
+              </div>
+              <div class="calendar-day text-gray-300 p-1">
+                <div class="text-right pr-2 font-medium">4</div>
+              </div>
+              <div class="calendar-day text-gray-300 p-1">
+                <div class="text-right pr-2 font-medium">5</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 周视图 (初始隐藏) -->
+          <div id="weekView" class="calendar-view hidden">
+            <!-- 星期标题 -->
+            <div class="grid grid-cols-7 border-b border-gray-200">
+              <div class="px-4 py-3 text-center text-sm font-medium text-gray-500 bg-gray-50">周日<br><span class="text-xs font-normal">5/14</span></div>
+              <div class="px-4 py-3 text-center text-sm font-medium text-gray-500 bg-gray-50">周一<br><span class="text-xs font-normal">5/15</span></div>
+              <div class="px-4 py-3 text-center text-sm font-medium text-gray-500 bg-gray-50">周二<br><span class="text-xs font-normal">5/16</span></div>
+              <div class="px-4 py-3 text-center text-sm font-medium text-gray-500 bg-gray-50">周三<br><span class="text-xs font-normal">5/17</span></div>
+              <div class="px-4 py-3 text-center text-sm font-medium text-gray-500 bg-gray-50">周四<br><span class="text-xs font-normal">5/18</span></div>
+              <div class="px-4 py-3 text-center text-sm font-medium text-gray-500 bg-gray-50">周五<br><span class="text-xs font-normal">5/19</span></div>
+              <div class="px-4 py-3 text-center text-sm font-medium text-gray-500 bg-gray-50">周六<br><span class="text-xs font-normal">5/20</span></div>
+            </div>
+            <!-- 时间轴 + 日程 -->
+            <div class="grid grid-cols-7 border-t border-gray-200">
+              <!-- 时间标签 -->
+              <div class="border-r border-gray-200 p-1 hidden sm:block" style="grid-row: span 24;">
+                <div class="h-8 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">8:00</div>
+                <div class="h-8 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">9:00</div>
+                <div class="h-8 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">10:00</div>
+                <div class="h-8 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">11:00</div>
+                <div class="h-8 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">12:00</div>
+                <div class="h-8 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">13:00</div>
+                <div class="h-8 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">14:00</div>
+                <div class="h-8 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">15:00</div>
+                <div class="h-8 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">16:00</div>
+                <div class="h-8 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">17:00</div>
+                <div class="h-8 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">18:00</div>
+                <div class="h-8 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">19:00</div>
+                <div class="h-8 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">20:00</div>
+                <div class="h-8 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">21:00</div>
+                <div class="h-8 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">22:00</div>
+                <div class="h-8 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">23:00</div>
+                <div class="h-8 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">0:00</div>
+                <div class="h-8 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">1:00</div>
+                <div class="h-8 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">2:00</div>
+                <div class="h-8 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">3:00</div>
+                <div class="h-8 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">4:00</div>
+                <div class="h-8 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">5:00</div>
+                <div class="h-8 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">6:00</div>
+                <div class="h-8 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">7:00</div>
+              </div>
+              <!-- 周日 -->
+              <div class="border-r border-gray-200 p-1" style="grid-row: span 24;">
+                <!-- 空时间段 -->
+                <div class="h-full"></div>
+              </div>
+              <!-- 周一 -->
+              <div class="border-r border-gray-200 p-1" style="grid-row: span 24;">
+                <!-- 空时间段 -->
+                <div class="h-full"></div>
+              </div>
+              <!-- 周二 -->
+              <div class="border-r border-gray-200 p-1" style="grid-row: span 24;">
+                <!-- 项目截止日期事件 -->
+                <div class="h-8 mt-40 bg-danger/10 border-l-2 border-danger p-1 rounded-r-md cursor-pointer hover:bg-danger/20 transition-colors">
+                  <div class="text-xs font-medium text-danger truncate">项目截止日期</div>
+                  <div class="text-[10px] text-gray-500">全天</div>
+                </div>
+              </div>
+              <!-- 周三 -->
+              <div class="border-r border-gray-200 p-1" style="grid-row: span 24;">
+                <!-- 空时间段 -->
+                <div class="h-full"></div>
+              </div>
+              <!-- 周四 -->
+              <div class="border-r border-gray-200 p-1" style="grid-row: span 24;">
+                <!-- 空时间段 -->
+                <div class="h-full"></div>
+              </div>
+              <!-- 周五 -->
+              <div class="border-r border-gray-200 p-1" style="grid-row: span 24;">
+                <!-- 空时间段 -->
+                <div class="h-full"></div>
+              </div>
+              <!-- 周六 -->
+              <div class="p-1" style="grid-row: span 24;">
+                <!-- 空时间段 -->
+                <div class="h-full"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 日视图 (初始隐藏) -->
+          <div id="dayView" class="calendar-view hidden">
+            <!-- 日期标题 -->
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+              <h3 class="text-lg font-medium text-dark">2023年5月13日 (周六)</h3>
+              <div class="flex space-x-2">
+                <button class="p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors" onclick="prevDay()">
+                  <i class="fa fa-chevron-left"></i>
+                </button>
+                <button class="p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors" onclick="today()">
+                  <i class="fa fa-calendar-o"></i>
+                </button>
+                <button class="p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors" onclick="nextDay()">
+                  <i class="fa fa-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+            <!-- 时间轴 + 日程 -->
+            <div class="grid grid-cols-12 border-t border-gray-200 h-[500px]">
+              <!-- 时间标签 -->
+              <div class="col-span-2 border-r border-gray-200 overflow-y-auto">
+                <div class="h-10 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">8:00</div>
+                <div class="h-10 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">9:00</div>
+                <div class="h-10 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">10:00</div>
+                <div class="h-10 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">11:00</div>
+                <div class="h-10 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">12:00</div>
+                <div class="h-10 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">13:00</div>
+                <div class="h-10 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">14:00</div>
+                <div class="h-10 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">15:00</div>
+                <div class="h-10 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">16:00</div>
+                <div class="h-10 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">17:00</div>
+                <div class="h-10 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">18:00</div>
+                <div class="h-10 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">19:00</div>
+                <div class="h-10 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">20:00</div>
+                <div class="h-10 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">21:00</div>
+                <div class="h-10 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">22:00</div>
+                <div class="h-10 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">23:00</div>
+                <div class="h-10 flex items-end justify-center text-xs text-gray-400 border-b border-gray-200">0:00</div>
+              </div>
+              <!-- 日程区域 -->
+              <div class="col-span-10 overflow-y-auto">
+                <!-- 团队周会 -->
+                <div class="h-20 mt-20 bg-success/10 border-l-2 border-success p-3 rounded-r-md cursor-pointer hover:bg-success/20 transition-colors" style="width: 90%; margin-left: 20px;">
+                  <div class="flex items-center justify-between">
+                    <div class="font-medium text-success">团队周会</div>
+                    <div class="text-xs text-gray-500">10:00 - 11:30</div>
+                  </div>
+                  <p class="text-sm text-gray-600 mt-1">主会议室 - 讨论本周进度和下周计划</p>
+                  <div class="flex items-center mt-2 space-x-2">
+                    <span class="px-2 py-0.5 text-xs bg-success/10 text-success rounded-full">会议</span>
+                    <span class="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full">团队</span>
+                  </div>
+                </div>
+                <!-- 产品设计评审 -->
+                <div class="h-16 mt-20 bg-primary/10 border-l-2 border-primary p-3 rounded-r-md cursor-pointer hover:bg-primary/20 transition-colors" style="width: 80%; margin-left: 40px;">
+                  <div class="flex items-center justify-between">
+                    <div class="font-medium text-primary">产品设计评审</div>
+                    <div class="text-xs text-gray-500">14:00 - 15:00</div>
+                  </div>
+                  <p class="text-sm text-gray-600 mt-1">视频会议 - 讨论新功能界面设计</p>
+                </div>
+                <!-- 提交周报 -->
+                <div class="h-12 mt-16 bg-warning/10 border-l-2 border-warning p-3 rounded-r-md cursor-pointer hover:bg-warning/20 transition-colors" style="width: 70%; margin-left: 60px;">
+                  <div class="flex items-center justify-between">
+                    <div class="font-medium text-warning">提交周报</div>
+                    <div class="text-xs text-gray-500">17:00 截止</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 今日事件列表 -->
+        <div class="calendar-card mb-6 overflow-hidden">
+          <div class="p-6 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-dark">今日事件 (5月13日)</h3>
+          </div>
+          <div class="divide-y divide-gray-200">
+            <div class="p-4 hover:bg-gray-50 transition-colors flex items-start">
+              <div class="w-1 bg-success mt-2"></div>
+              <div class="ml-4 flex-1">
+                <div class="flex items-center justify-between">
+                  <h4 class="font-medium text-dark">团队周会</h4>
+                  <span class="text-sm text-gray-500">10:00 - 11:30</span>
+                </div>
+                <p class="text-sm text-gray-500 mt-1">主会议室 - 讨论本周进度和下周计划</p>
+                <div class="flex items-center mt-2 space-x-2">
+                  <span class="px-2 py-0.5 text-xs bg-success/10 text-success rounded-full">会议</span>
+                  <span class="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full">团队</span>
+                </div>
+              </div>
+              <div class="ml-4 flex items-center space-x-2">
+                <button class="p-2 text-gray-400 hover:text-gray-600 transition-colors"><i class="fa fa-pencil"></i></button>
+                <button class="p-2 text-gray-400 hover:text-danger transition-colors"><i class="fa fa-trash-o"></i></button>
+              </div>
+            </div>
+            <div class="p-4 hover:bg-gray-50 transition-colors flex items-start">
+              <div class="w-1 bg-primary mt-2"></div>
+              <div class="ml-4 flex-1">
+                <div class="flex items-center justify-between">
+                  <h4 class="font-medium text-dark">产品设计评审</h4>
+                  <span class="text-sm text-gray-500">14:00 - 15:00</span>
+                </div>
+                <p class="text-sm text-gray-500 mt-1">视频会议 - 讨论新功能界面设计</p>
+                <div class="flex items-center mt-2 space-x-2">
+                  <span class="px-2 py-0.5 text-xs bg-primary/10 text-primary rounded-full">评审</span>
+                  <span class="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full">产品</span>
+                </div>
+              </div>
+              <div class="ml-4 flex items-center space-x-2">
+                <button class="p-2 text-gray-400 hover:text-gray-600 transition-colors"><i class="fa fa-pencil"></i></button>
+                <button class="p-2 text-gray-400 hover:text-danger transition-colors"><i class="fa fa-trash-o"></i></button>
+              </div>
+            </div>
+            <div class="p-4 hover:bg-gray-50 transition-colors flex items-start">
+              <div class="w-1 bg-warning mt-2"></div>
+              <div class="ml-4 flex-1">
+                <div class="flex items-center justify-between">
+                  <h4 class="font-medium text-dark">提交周报</h4>
+                  <span class="text-sm text-gray-500">17:00 截止</span>
+                </div>
+                <p class="text-sm text-gray-500 mt-1">通过邮件发送本周工作进展和下周计划</p>
+                <div class="flex items-center mt-2 space-x-2">
+                  <span class="px-2 py-0.5 text-xs bg-warning/10 text-warning rounded-full">截止</span>
+                  <span class="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full">行政</span>
+                </div>
+              </div>
+              <div class="ml-4 flex items-center space-x-2">
+                <button class="p-2 text-gray-400 hover:text-gray-600 transition-colors"><i class="fa fa-pencil"></i></button>
+                <button class="p-2 text-gray-400 hover:text-danger transition-colors"><i class="fa fa-trash-o"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 日历功能
+    let currentDate = new Date();
+    const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+    const dayNames = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+
+    // 初始化
+    updateCalendarHeader();
+
+    // 更新日历标题
+    function updateCalendarHeader() {
+      document.getElementById('currentMonth').textContent = `${currentDate.getFullYear()}年${monthNames[currentDate.getMonth()]}`;
+    }
+
+    // 上个月
+    function prevMonth() {
+      currentDate.setMonth(currentDate.getMonth() - 1);
+      updateCalendarHeader();
+      // 这里可以添加更新日历格子的逻辑
+    }
+
+    // 下个月
+    function nextMonth() {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+      updateCalendarHeader();
+      // 这里可以添加更新日历格子的逻辑
+    }
+
+    // 切换视图
+    function switchView(viewType) {
+      // 隐藏所有视图
+      document.querySelectorAll('.calendar-view').forEach(view => {
+        view.classList.add('hidden');
+      });
+
+      // 显示选中的视图
+      document.getElementById(`${viewType}View`).classList.remove('hidden');
+
+      // 更新按钮状态
+      const buttons = document.querySelectorAll('#viewSwitcher button');
+      buttons.forEach(button => {
+        button.classList.remove('bg-primary', 'text-white');
+        button.classList.add('text-gray-600', 'hover:bg-gray-100');
+      });
+
+      // 设置当前按钮状态
+      const activeButton = Array.from(buttons).find(button => button.textContent.trim() === viewType === 'month' ? '月' : viewType === 'week' ? '周' : '日');
+      if (activeButton) {
+        activeButton.classList.remove('text-gray-600', 'hover:bg-gray-100');
+        activeButton.classList.add('bg-primary', 'text-white');
+      }
+
+      // 更新侧边栏选中状态
+      const sidebarItems = document.querySelectorAll('.sidebar-item i.fa-calendar + span + div .sidebar-item');
+      sidebarItems.forEach(item => {
+        item.classList.remove('bg-primary/10', 'text-primary');
+        item.classList.add('text-gray-600');
+      });
+
+      // 设置侧边栏当前选中项
+      const activeSidebarItem = document.querySelector(`.sidebar-item i.fa-${viewType === 'month' ? 'th-large' : viewType === 'week' ? 'th' : 'list'} + span`).parentElement;
+      if (activeSidebarItem) {
+        activeSidebarItem.classList.remove('text-gray-600');
+        activeSidebarItem.classList.add('bg-primary/10', 'text-primary');
+      }
+    }
+
+    // 上一天
+    function prevDay() {
+      currentDate.setDate(currentDate.getDate() - 1);
+      updateDayViewHeader();
+    }
+
+    // 下一天
+    function nextDay() {
+      currentDate.setDate(currentDate.getDate() + 1);
+      updateDayViewHeader();
+    }
+
+    // 今天
+    function today() {
+      currentDate = new Date();
+      updateDayViewHeader();
+    }
+
+    // 更新日视图标题
+    function updateDayViewHeader() {
+      const dayViewHeader = document.querySelector('#dayView h3');
+      if (dayViewHeader) {
+        dayViewHeader.textContent = `${currentDate.getFullYear()}年${currentDate.getMonth() + 1}月${currentDate.getDate()}日 (${dayNames[currentDate.getDay()]})`;
+      }
+    }
+
+    // 为日期添加点击事件
+    document.querySelectorAll('.calendar-day').forEach(day => {
+      day.addEventListener('click', function() {
+        // 移除所有选中状态
+        document.querySelectorAll('.calendar-day').forEach(d => {
+          d.classList.remove('ring-2', 'ring-primary');
+        });
+        // 添加选中状态
+        this.classList.add('ring-2', 'ring-primary');
+      });
+    });
+
+    // 为侧边栏视图项添加点击事件
+    document.querySelectorAll('.sidebar-item i.fa-th-large + span').forEach(item => {
+      item.parentElement.addEventListener('click', function() {
+        switchView('month');
+      });
+    });
+    document.querySelectorAll('.sidebar-item i.fa-th + span').forEach(item => {
+      item.parentElement.addEventListener('click', function() {
+        switchView('week');
+      });
+    });
+    document.querySelectorAll('.sidebar-item i.fa-list + span').forEach(item => {
+      item.parentElement.addEventListener('click', function() {
+        switchView('day');
+      });
+    });
+  </script>
+</body>
+</html>

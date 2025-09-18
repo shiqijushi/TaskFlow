@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskFlow - 报表统计</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  <!-- 配置Tailwind自定义颜色和字体 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            success: '#00B42A',
+            warning: '#FF7D00',
+            danger: '#F53F3F',
+            dark: '#1D2129',
+            'gray-600': '#4E5969',
+            'gray-400': '#86909C',
+            'gray-100': '#F2F3F5',
+          },
+          fontFamily: {
+            inter: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .browser-window {
+        @apply rounded-lg overflow-hidden shadow-xl border border-gray-200 bg-white;
+      }
+      .browser-header {
+        @apply flex items-center px-4 py-3 bg-gray-100 border-b border-gray-200;
+      }
+      .browser-controls {
+        @apply flex space-x-2;
+      }
+      .browser-control {
+        @apply w-3 h-3 rounded-full;
+      }
+      .browser-address {
+        @apply flex-1 mx-4 px-3 py-1 bg-white rounded-full text-sm text-gray-600 border border-gray-300;
+      }
+      .sidebar-item {
+        @apply flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 hover:text-primary transition-colors rounded-md cursor-pointer;
+      }
+      .sidebar-item.active {
+        @apply bg-primary/10 text-primary font-medium;
+      }
+      .report-card {
+        @apply bg-white rounded-xl shadow-sm border border-gray-100 p-6 transition-all hover:shadow-md;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 font-inter min-h-screen p-4">
+  <!-- 浏览器窗口模拟 -->
+  <div class="browser-window w-full max-w-7xl mx-auto h-[800px] flex flex-col overflow-hidden">
+    <!-- 浏览器头部 -->
+    <div class="browser-header">
+      <div class="browser-controls">
+        <div class="browser-control bg-danger"></div>
+        <div class="browser-control bg-warning"></div>
+        <div class="browser-control bg-success"></div>
+      </div>
+      <div class="browser-address flex items-center">
+        <i class="fa fa-lock text-gray-400 mr-2"></i>
+        <span>taskflow.app/reports</span>
+      </div>
+    </div>
+    <!-- 页面内容 -->
+    <div class="flex flex-1 overflow-hidden">
+      <!-- 侧边栏 -->
+      <div class="w-64 bg-white border-r border-gray-200 p-4 flex flex-col overflow-y-auto">
+        <div class="flex items-center mb-8 p-3 bg-primary/10 rounded-lg">
+          <div class="w-10 h-10 bg-primary rounded-md flex items-center justify-center text-white font-bold text-xl mr-3">TF</div>
+          <div>
+            <h1 class="text-lg font-bold text-dark">TaskFlow</h1>
+            <p class="text-xs text-gray-400">高效任务管理</p>
+          </div>
+        </div>
+        <div class="space-y-1 mb-6">
+          <div class="sidebar-item" onclick="window.location.href='dashboard.html'"><i class="fa fa-dashboard w-5 h-5 mr-3"></i><span>仪表盘</span></div>
+          <div class="sidebar-item" onclick="window.location.href='tasks.html'"><i class="fa fa-tasks w-5 h-5 mr-3"></i><span>任务管理</span></div>
+          <div class="sidebar-item" onclick="window.location.href='time_tracking.html'"><i class="fa fa-clock-o w-5 h-5 mr-3"></i><span>时间追踪</span></div>
+          <div class="sidebar-item active"><i class="fa fa-bar-chart w-5 h-5 mr-3"></i><span>报表统计</span></div>
+          <div class="sidebar-item" onclick="window.location.href='calendar.html'"><i class="fa fa-calendar w-5 h-5 mr-3"></i><span>日历视图</span></div>
+        </div>
+        <div class="mb-6">
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-4 mb-2">报表类型</h3>
+          <div class="space-y-1">
+            <div class="sidebar-item bg-primary/10 text-primary" onclick="switchReportType('workload')"><i class="fa fa-line-chart w-5 h-5 mr-3"></i><span>工作量统计</span></div>
+            <div class="sidebar-item" onclick="switchReportType('project')"><i class="fa fa-pie-chart w-5 h-5 mr-3"></i><span>项目分布</span></div>
+            <div class="sidebar-item" onclick="switchReportType('completion')"><i class="fa fa-tasks w-5 h-5 mr-3"></i><span>任务完成率</span></div>
+            <div class="sidebar-item" onclick="switchReportType('team')"><i class="fa fa-users w-5 h-5 mr-3"></i><span>团队绩效</span></div>
+          </div>
+        </div>
+        <div class="border-t border-gray-100 pt-4 mt-auto">
+          <div class="sidebar-item" onclick="window.location.href='settings.html'"><i class="fa fa-cog w-5 h-5 mr-3"></i><span>设置</span></div>
+          <div class="sidebar-item" onclick="window.location.href='help_support.html'"><i class="fa fa-question-circle w-5 h-5 mr-3"></i><span>帮助与支持</span></div>
+          <div class="flex items-center p-4 mt-4 bg-gray-100 rounded-md cursor-pointer" onclick="window.location.href='settings.html#account'">
+            <img src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-1.2.1&auto=format&fit=crop&w=50&q=80" alt="用户头像" class="w-10 h-10 rounded-full mr-3 object-cover">
+            <div class="flex-1">
+              <p class="text-sm font-medium text-dark">张小明</p>
+              <p class="text-xs text-gray-400">高级产品经理</p>
+            </div>
+            <button class="text-gray-400 hover:text-dark"><i class="fa fa-sign-out"></i></button>
+          </div>
+        </div>
+      </div>
+      <!-- 主内容区 -->
+      <div class="flex-1 overflow-y-auto p-6 bg-gray-50">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+          <div>
+            <h2 class="text-2xl font-bold text-dark">报表统计</h2>
+            <p class="text-gray-400">查看和分析你的工作数据</p>
+          </div>
+          <div class="flex flex-wrap gap-3">
+            <div class="relative">
+              <select class="pl-3 pr-8 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all appearance-none bg-white">
+                <option>近7天</option>
+                <option>近30天</option>
+                <option>近90天</option>
+                <option>全年</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                <i class="fa fa-chevron-down text-xs"></i>
+              </div>
+            </div>
+            <button class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors flex items-center">
+              <i class="fa fa-download mr-2"></i><span>导出报表</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 报表内容容器 -->
+        <div id="reportContent">
+          <!-- 工作量趋势图 -->
+          <div id="workloadReport" class="report-content">
+            <div class="report-card mb-6">
+              <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-medium text-dark">工作量趋势</h3>
+                <div class="flex flex-wrap gap-3">
+                  <div class="flex space-x-2">
+                    <button class="px-3 py-1 text-sm bg-primary/10 text-primary rounded-md" onclick="updateWorkloadChart('day')">日</button>
+                    <button class="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-md" onclick="updateWorkloadChart('week')">周</button>
+                    <button class="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-md" onclick="updateWorkloadChart('month')">月</button>
+                  </div>
+                  <button class="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition-colors flex items-center" onclick="toggleWorkloadData('hours')">
+                    <i class="fa fa-clock-o mr-1"></i><span>工作时长</span>
+                  </button>
+                  <button class="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition-colors flex items-center" onclick="toggleWorkloadData('tasks')">
+                    <i class="fa fa-tasks mr-1"></i><span>任务数</span>
+                  </button>
+                </div>
+              </div>
+              <div class="h-80">
+                <canvas id="workloadChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- 项目分布图 -->
+          <div id="projectReport" class="report-content hidden">
+            <div class="report-card mb-6">
+              <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-medium text-dark">项目分布</h3>
+                <div class="relative">
+                  <select class="pl-3 pr-8 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all appearance-none bg-white" onchange="updateProjectDistributionChart(this.value)">
+                    <option value="hours">按工作时长</option>
+                    <option value="tasks">按任务数量</option>
+                    <option value="members">按成员数量</option>
+                  </select>
+                  <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                    <i class="fa fa-chevron-down text-xs"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="h-80">
+                <canvas id="projectDistributionChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- 任务完成率 -->
+          <div id="completionReport" class="report-content hidden">
+            <div class="report-card mb-6">
+              <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-medium text-dark">任务完成率</h3>
+                <div class="flex space-x-3">
+                  <div class="relative">
+                    <select class="pl-3 pr-8 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all appearance-none bg-white" onchange="updateTaskCompletionChart(this.value)">
+                      <option value="project">按项目</option>
+                      <option value="member">按成员</option>
+                      <option value="priority">按优先级</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                      <i class="fa fa-chevron-down text-xs"></i>
+                    </div>
+                  </div>
+                  <button class="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition-colors flex items-center" onclick="showCompletionDetails()">
+                    <i class="fa fa-info-circle mr-1"></i><span>详情</span>
+                  </button>
+                </div>
+              </div>
+              <div class="h-80">
+                <canvas id="taskCompletionChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- 团队绩效 -->
+          <div id="teamReport" class="report-content hidden">
+            <div class="report-card mb-6">
+              <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+                <h3 class="text-lg font-medium text-dark">团队绩效</h3>
+                <div class="flex flex-wrap gap-3">
+                  <div class="relative">
+                    <input type="text" id="teamSearch" placeholder="搜索团队成员..." class="pl-9 pr-3 py-2 w-full sm:w-64 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all">
+                    <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                  </div>
+                  <div class="relative">
+                    <select class="pl-3 pr-8 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all appearance-none bg-white" onchange="sortTeamPerformance(this.value)">
+                      <option value="name">按姓名排序</option>
+                      <option value="tasks-desc">完成任务数 (高→低)</option>
+                      <option value="tasks-asc">完成任务数 (低→高)</option>
+                      <option value="hours-desc">工作时长 (高→低)</option>
+                      <option value="hours-asc">工作时长 (低→高)</option>
+                      <option value="rating-desc">效率评分 (高→低)</option>
+                      <option value="rating-asc">效率评分 (低→高)</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                      <i class="fa fa-chevron-down text-xs"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">成员</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">完成任务</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">工作时长</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">效率评分</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="flex-shrink-0 h-10 w-10">
+                        <img class="h-10 w-10 rounded-full object-cover" src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" alt="">
+                      </div>
+                      <div class="ml-4">
+                        <div class="text-sm font-medium text-gray-900">张小明</div>
+                        <div class="text-sm text-gray-500">产品经理</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900">16/20</div>
+                    <div class="text-xs text-success">80%</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900">42.5h</div>
+                    <div class="text-xs text-gray-500">本周</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="w-16 bg-gray-200 rounded-full h-2.5 mr-2">
+                        <div class="bg-primary h-2.5 rounded-full" style="width: 86%"></div>
+                      </div>
+                      <span class="text-sm font-medium text-gray-900">86</span>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">在线</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="flex-shrink-0 h-10 w-10">
+                        <img class="h-10 w-10 rounded-full object-cover" src="https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" alt="">
+                      </div>
+                      <div class="ml-4">
+                        <div class="text-sm font-medium text-gray-900">李开发</div>
+                        <div class="text-sm text-gray-500">高级工程师</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900">24/28</div>
+                    <div class="text-xs text-success">86%</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900">58.2h</div>
+                    <div class="text-xs text-gray-500">本周</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="w-16 bg-gray-200 rounded-full h-2.5 mr-2">
+                        <div class="bg-primary h-2.5 rounded-full" style="width: 92%"></div>
+                      </div>
+                      <span class="text-sm font-medium text-gray-900">92</span>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">在线</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="flex-shrink-0 h-10 w-10">
+                        <img class="h-10 w-10 rounded-full object-cover" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" alt="">
+                      </div>
+                      <div class="ml-4">
+                        <div class="text-sm font-medium text-gray-900">王设计</div>
+                        <div class="text-sm text-gray-500">UI设计师</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900">12/15</div>
+                    <div class="text-xs text-success">80%</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900">36.8h</div>
+                    <div class="text-xs text-gray-500">本周</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="w-16 bg-gray-200 rounded-full h-2.5 mr-2">
+                        <div class="bg-primary h-2.5 rounded-full" style="width: 78%"></div>
+                      </div>
+                      <span class="text-sm font-medium text-gray-900">78</span>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">忙碌</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="flex items-center justify-between mt-4 px-6 py-3 bg-gray-50 border-t border-gray-200 sm:px-6">
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+              <div>
+                <p class="text-sm text-gray-700">
+                  显示第 <span class="font-medium">1</span> 至 <span class="font-medium">3</span> 条，共 <span class="font-medium">8</span> 条结果
+                </p>
+              </div>
+              <div>
+                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                  <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    <span class="sr-only">上一页</span>
+                    <i class="fa fa-chevron-left text-xs"></i>
+                  </a>
+                  <a href="#" aria-current="page" class="z-10 bg-primary border-primary text-white relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                    1
+                  </a>
+                  <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                    2
+                  </a>
+                  <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                    3
+                  </a>
+                  <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                    ...
+                  </span>
+                  <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    <span class="sr-only">下一页</span>
+                    <i class="fa fa-chevron-right text-xs"></i>
+                  </a>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 全局变量
+    // 全局变量
+    let workloadChart, projectDistributionChart, taskCompletionChart;
+    let showHours = true, showTasks = true;
+
+    // 团队绩效数据
+    const teamData = [
+      { name: '张小明', role: '产品经理', completedTasks: 16, totalTasks: 20, hours: 42.5, rating: 86, status: 'online' },
+      { name: '李开发', role: '前端开发', completedTasks: 24, totalTasks: 28, hours: 56.2, rating: 92, status: 'busy' },
+      { name: '王设计', role: 'UI设计师', completedTasks: 12, totalTasks: 15, hours: 38.7, rating: 88, status: 'online' },
+      { name: '赵测试', role: '测试工程师', completedTasks: 18, totalTasks: 22, hours: 45.3, rating: 84, status: 'online' },
+      { name: '陈运营', role: '运营专员', completedTasks: 14, totalTasks: 18, hours: 37.9, rating: 80, status: 'offline' }
+    ];
+
+    // 初始化页面
+    document.addEventListener('DOMContentLoaded', function() {
+      // 初始化图表
+      initWorkloadChart();
+      initProjectDistributionChart();
+      initTaskCompletionChart();
+      updateTeamTable();
+
+      // 绑定搜索事件
+      document.getElementById('teamSearch').addEventListener('input', function() {
+        updateTeamTable();
+      });
+    });
+
+    // 切换报表类型
+    function switchReportType(type) {
+      // 隐藏所有报表
+      document.querySelectorAll('.report-content').forEach(content => {
+        content.classList.add('hidden');
+      });
+
+      // 移除所有侧边栏选中状态
+      document.querySelectorAll('.sidebar-item').forEach(item => {
+        item.classList.remove('bg-primary/10', 'text-primary');
+      });
+
+      // 显示选中的报表
+      document.getElementById(type + 'Report').classList.remove('hidden');
+
+      // 添加侧边栏选中状态
+      const activeItem = document.querySelector(`.sidebar-item[onclick="switchReportType('${type}')"]`);
+      if (activeItem) {
+        activeItem.classList.add('bg-primary/10', 'text-primary');
+      }
+    }
+
+    // 修复工作量统计模块中的事件对象问题
+    function updateWorkloadChart(period) {
+      let labels, hoursData, tasksData;
+
+      switch(period) {
+        case 'day':
+          labels = ['9:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
+          hoursData = [1.2, 1.5, 1.0, 1.8, 1.2, 0.8, 1.0, 0.5];
+          tasksData = [2, 3, 1, 4, 2, 1, 2, 0];
+          break;
+        case 'week':
+          labels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+          hoursData = [6.2, 7.8, 5.5, 8.1, 6.9, 2.2, 1.5];
+          tasksData = [8, 10, 6, 12, 9, 3, 1];
+          break;
+        case 'month':
+          labels = ['第1周', '第2周', '第3周', '第4周'];
+          hoursData = [28.5, 32.2, 26.8, 24.5];
+          tasksData = [38, 42, 34, 30];
+          break;
+      }
+
+      workloadChart.data.labels = labels;
+      workloadChart.data.datasets[0].data = hoursData;
+      workloadChart.data.datasets[1].data = tasksData;
+      workloadChart.update();
+
+      // 更新按钮状态
+      document.querySelectorAll('[onclick^="updateWorkloadChart("]').forEach(btn => {
+        btn.classList.remove('bg-primary/10', 'text-primary');
+        btn.classList.add('text-gray-600', 'hover:bg-gray-100');
+      });
+      if (event && event.currentTarget) {
+        event.currentTarget.classList.remove('text-gray-600', 'hover:bg-gray-100');
+        event.currentTarget.classList.add('bg-primary/10', 'text-primary');
+      }
+    }
+
+    // 修复工作量数据显示切换中的事件对象问题
+    function toggleWorkloadData(type) {
+      if (type === 'hours') {
+        showHours = !showHours;
+        workloadChart.data.datasets[0].hidden = !showHours;
+      } else if (type === 'tasks') {
+        showTasks = !showTasks;
+        workloadChart.data.datasets[1].hidden = !showTasks;
+      }
+      workloadChart.update();
+
+      // 更新按钮状态
+      if (event && event.currentTarget) {
+        const btn = event.currentTarget;
+        if (btn.classList.contains('bg-primary/10')) {
+          btn.classList.remove('bg-primary/10', 'text-primary');
+          btn.classList.add('bg-gray-100', 'text-gray-600');
+        } else {
+          btn.classList.remove('bg-gray-100', 'text-gray-600');
+          btn.classList.add('bg-primary/10', 'text-primary');
+        }
+      }
+    }
+
+    // 初始化工作量趋势图
+    function initWorkloadChart() {
+      const workloadCtx = document.getElementById('workloadChart').getContext('2d');
+      workloadChart = new Chart(workloadCtx, {
+        type: 'line',
+        data: {
+          labels: ['5/7', '5/8', '5/9', '5/10', '5/11', '5/12', '5/13'],
+          datasets: [
+            {
+              label: '工作时长(小时)',
+              data: [6.2, 7.8, 5.5, 8.1, 6.9, 7.2, 4.5],
+              borderColor: '#165DFF',
+              backgroundColor: 'rgba(22, 93, 255, 0.1)',
+              borderWidth: 2,
+              tension: 0.3,
+              fill: true,
+              pointRadius: 4,
+              pointHoverRadius: 6
+            },
+            {
+              label: '完成任务数',
+              data: [8, 10, 6, 12, 9, 11, 4],
+              borderColor: '#00B42A',
+              backgroundColor: 'transparent',
+              borderWidth: 2,
+              tension: 0.3,
+              fill: false,
+              borderDash: [5, 5],
+              pointRadius: 4,
+              pointHoverRadius: 6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: {
+                display: true,
+                color: 'rgba(0, 0, 0, 0.05)'
+              }
+            },
+            x: {
+              grid: {
+                display: false
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+              callbacks: {
+                label: function(context) {
+                  let label = context.dataset.label || '';
+                  if (label) {
+                    label += ': ';
+                  }
+                  if (context.parsed.y !== null) {
+                    label += context.parsed.y;
+                  }
+                  return label;
+                }
+              }
+            }
+          },
+          interaction: {
+            mode: 'nearest',
+            axis: 'x',
+            intersect: false
+          }
+        }
+    });
+  }
+
+    // 初始化项目分布图
+    function initProjectDistributionChart() {
+      const projectCtx = document.getElementById('projectDistributionChart').getContext('2d');
+      projectDistributionChart = new Chart(projectCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['产品研发', '市场推广', '数据分析', '客户支持', '行政管理'],
+          datasets: [
+            {
+              data: [42, 21, 15, 12, 10],
+              backgroundColor: [
+                '#165DFF',
+                '#00B42A',
+                '#FF7D00',
+                '#F53F3F',
+                '#86909C'
+              ],
+              borderWidth: 0,
+              hoverOffset: 15
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.parsed || 0;
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = Math.round((value / total) * 100);
+                  return `${label}: ${value} (${percentage}%)`;
+                }
+              }
+            }
+          },
+          cutout: '70%',
+          onClick: function(event, elements) {
+            if (elements.length > 0) {
+              const index = elements[0].index;
+              const projectName = projectDistributionChart.data.labels[index];
+              alert(`查看项目: ${projectName} 的详细报表`);
+              // 这里可以添加跳转到项目详情页的逻辑
+            }
+          }
+        }
+      });
+    }
+
+    // 更新项目分布图
+    function updateProjectDistributionChart(type) {
+      let data;
+
+      switch(type) {
+        case 'hours':
+          data = [42, 21, 15, 12, 10];
+          break;
+        case 'tasks':
+          data = [38, 24, 18, 12, 8];
+          break;
+        case 'members':
+          data = [6, 3, 2, 2, 1];
+          break;
+      }
+
+      projectDistributionChart.data.datasets[0].data = data;
+      projectDistributionChart.update();
+    }
+
+    // 初始化任务完成率图
+    function initTaskCompletionChart() {
+      const taskCompletionCtx = document.getElementById('taskCompletionChart').getContext('2d');
+      taskCompletionChart = new Chart(taskCompletionCtx, {
+        type: 'bar',
+        data: {
+          labels: ['产品研发', '市场推广', '数据分析', '客户支持', '行政管理'],
+          datasets: [
+            {
+              label: '已完成',
+              data: [38, 18, 14, 9, 9],
+              backgroundColor: '#00B42A',
+              borderRadius: 4
+            },
+            {
+              label: '未完成',
+              data: [12, 6, 4, 3, 1],
+              backgroundColor: '#F53F3F',
+              borderRadius: 4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              stacked: true,
+              grid: {
+                display: true,
+                color: 'rgba(0, 0, 0, 0.05)'
+              }
+            },
+            x: {
+              stacked: true,
+              grid: {
+                display: false
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const label = context.dataset.label || '';
+                  const value = context.parsed.y || 0;
+                  const total = context.dataset.data[context.dataIndex] + (context.datasetIndex === 0 ? 
+                    context.chart.data.datasets[1].data[context.dataIndex] : 
+                    context.chart.data.datasets[0].data[context.dataIndex]);
+                  const percentage = Math.round((value / total) * 100);
+                  return `${label}: ${value} (${percentage}%)`;
+                }
+              }
+            }
+          },
+          onClick: function(event, elements) {
+            if (elements.length > 0) {
+              const index = elements[0].index;
+              const projectName = taskCompletionChart.data.labels[index];
+              alert(`查看项目: ${projectName} 的任务完成详情`);
+            }
+          }
+        }
+      });
+    }
+
+    // 更新任务完成率图
+    function updateTaskCompletionChart(dimension) {
+      let labels, completedData, pendingData;
+
+      switch(dimension) {
+        case 'project':
+          labels = ['产品研发', '市场推广', '数据分析', '客户支持', '行政管理'];
+          completedData = [38, 18, 14, 9, 9];
+          pendingData = [12, 6, 4, 3, 1];
+          break;
+        case 'member':
+          labels = ['张小明', '李开发', '王设计', '赵测试', '陈运营'];
+          completedData = [16, 24, 12, 18, 14];
+          pendingData = [4, 4, 3, 4, 4];
+          break;
+        case 'priority':
+          labels = ['高', '中', '低'];
+          completedData = [18, 35, 16];
+          pendingData = [7, 12, 7];
+          break;
+      }
+
+      taskCompletionChart.data.labels = labels;
+      taskCompletionChart.data.datasets[0].data = completedData;
+      taskCompletionChart.data.datasets[1].data = pendingData;
+      taskCompletionChart.update();
+    }
+
+    // 显示任务完成率详情
+    function showCompletionDetails() {
+      alert('任务完成率详情功能将在未来版本中实现');
+    }
+
+    // 更新团队表格
+    function updateTeamTable() {
+      const searchTerm = document.getElementById('teamSearch').value.toLowerCase();
+      const filteredData = teamData.filter(member => 
+        member.name.toLowerCase().includes(searchTerm) || 
+        member.role.toLowerCase().includes(searchTerm)
+      );
+
+      // 清空表格
+      const tbody = document.querySelector('#teamReport tbody');
+      tbody.innerHTML = '';
+
+      // 添加过滤后的数据
+      filteredData.forEach(member => {
+        const row = document.createElement('tr');
+        const completionRate = Math.round((member.completedTasks / member.totalTasks) * 100);
+        const statusClass = member.status === 'online' ? 'bg-green-100 text-green-800' : 
+                            member.status === 'busy' ? 'bg-yellow-100 text-yellow-800' : 
+                            'bg-gray-100 text-gray-800';
+        const statusText = member.status === 'online' ? '在线' : 
+                          member.status === 'busy' ? '忙碌' : 
+                          '离线';
+
+        row.innerHTML = `
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center">
+              <div class="flex-shrink-0 h-10 w-10">
+                <img class="h-10 w-10 rounded-full object-cover" src="https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=random" alt="${member.name}">
+              </div>
+              <div class="ml-4">
+                <div class="text-sm font-medium text-gray-900">${member.name}</div>
+                <div class="text-sm text-gray-500">${member.role}</div>
+              </div>
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="text-sm text-gray-900">${member.completedTasks}/${member.totalTasks}</div>
+            <div class="text-xs text-success">${completionRate}%</div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="text-sm text-gray-900">${member.hours}h</div>
+            <div class="text-xs text-gray-500">本周</div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center">
+              <div class="w-16 bg-gray-200 rounded-full h-2.5 mr-2">
+                <div class="bg-primary h-2.5 rounded-full" style="width: ${member.rating}%"></div>
+              </div>
+              <span class="text-sm font-medium text-gray-900">${member.rating}</span>
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">${statusText}</span>
+          </td>
+        `;
+
+        tbody.appendChild(row);
+      });
+    }
+
+    // 切换报表类型 (已移至上方)
+
+    // 排序团队绩效
+    function sortTeamPerformance(criteria) {
+      switch(criteria) {
+        case 'name':
+          teamData.sort((a, b) => a.name.localeCompare(b.name));
+          break;
+        case 'tasks-desc':
+          teamData.sort((a, b) => b.completedTasks - a.completedTasks);
+          break;
+        case 'tasks-asc':
+          teamData.sort((a, b) => a.completedTasks - b.completedTasks);
+          break;
+        case 'hours-desc':
+          teamData.sort((a, b) => b.hours - a.hours);
+          break;
+        case 'hours-asc':
+          teamData.sort((a, b) => a.hours - b.hours);
+          break;
+        case 'rating-desc':
+          teamData.sort((a, b) => b.rating - a.rating);
+          break;
+        case 'rating-asc':
+          teamData.sort((a, b) => a.rating - b.rating);
+          break;
+      }
+
+      updateTeamTable();
+    }
+  </script>
+</body>
+</html>

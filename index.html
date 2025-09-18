@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskFlow - 原型展示</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <!-- 通用样式（优化版） -->
+  <link href="assets/css/common.min.css" rel="stylesheet">
+  <!-- 性能优化工具 -->
+  <script src="assets/js/performance.js"></script>
+  <!-- 通用JavaScript工具库 -->
+  <script src="assets/js/common.js"></script>
+  <!-- 配置Tailwind自定义颜色 -->
+  <script>
+    // 初始化Tailwind配置（通过common.js）
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof window.initTailwindConfig === 'function') {
+        window.initTailwindConfig();
+      }
+    });
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .prototype-container {
+        @apply mb-8 md:mb-12 bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200;
+      }
+      .prototype-header {
+        @apply px-4 md:px-6 py-3 md:py-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between;
+      }
+      .prototype-title {
+        @apply text-base md:text-lg font-semibold text-dark;
+      }
+      .prototype-iframe {
+        @apply w-full transition-all duration-300 ease-in-out border-0;
+        height: 60vh;
+        min-height: 400px;
+      }
+      @media (min-width: 768px) {
+        .prototype-iframe {
+          height: 800px;
+        }
+      }
+      /* 优化加载动画 */
+      .prototype-iframe {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: loading 2s infinite;
+      }
+      .prototype-iframe:not([src=""]) {
+        background: none;
+        animation: none;
+      }
+      @keyframes loading {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 font-inter min-h-screen p-4 md:p-8">
+  <div class="max-w-7xl mx-auto">
+    <!-- 页面标题 -->
+    <div class="text-center mb-8 md:mb-12 px-4">
+      <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold text-dark mb-2 md:mb-3">TaskFlow 高保真原型</h1>
+      <p class="text-sm md:text-base text-gray-600 max-w-2xl mx-auto">基于Web端的任务管理应用，提供高效的任务管理、时间追踪和报表统计功能</p>
+    </div>
+
+    <!-- 原型导航 -->
+    <div class="flex flex-wrap justify-center gap-2 md:gap-3 mb-8 md:mb-10 px-2">
+      <button class="prototype-nav-btn px-3 md:px-4 py-1.5 md:py-2 text-sm md:text-base bg-primary text-white rounded-md hover:bg-primary/90 transition-colors" data-target="dashboard">仪表盘</button>
+      <button class="prototype-nav-btn px-3 md:px-4 py-1.5 md:py-2 text-sm md:text-base bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors" data-target="tasks">任务管理</button>
+      <button class="prototype-nav-btn px-3 md:px-4 py-1.5 md:py-2 text-sm md:text-base bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors" data-target="time-tracking">时间追踪</button>
+      <button class="prototype-nav-btn px-3 md:px-4 py-1.5 md:py-2 text-sm md:text-base bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors" data-target="reports">报表统计</button>
+      <button class="prototype-nav-btn px-3 md:px-4 py-1.5 md:py-2 text-sm md:text-base bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors" data-target="calendar">日历视图</button>
+      <button class="prototype-nav-btn px-3 md:px-4 py-1.5 md:py-2 text-sm md:text-base bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors" data-target="settings">设置</button>
+      <button class="prototype-nav-btn px-3 md:px-4 py-1.5 md:py-2 text-sm md:text-base bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors" data-target="help-support">帮助与支持</button>
+      <button class="prototype-nav-btn px-3 md:px-4 py-1.5 md:py-2 text-sm md:text-base bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors" data-target="login">登录页面</button>
+    </div>
+
+    <!-- 仪表盘原型 -->
+    <div id="dashboard-prototype" class="prototype-container">
+      <div class="prototype-header">
+        <h2 class="prototype-title"><i class="fa fa-dashboard mr-2"></i> 仪表盘</h2>
+        <div class="flex space-x-2">
+          <button class="p-2 text-gray-400 hover:text-gray-600 transition-colors" onclick="openFullscreen('dashboard')">
+            <i class="fa fa-expand"></i>
+          </button>
+        </div>
+      </div>
+      <iframe id="dashboard-iframe" class="prototype-iframe" src="design/prototypes/dashboard.html"></iframe>
+    </div>
+
+    <!-- 设置原型 -->
+    <div id="settings-prototype" class="prototype-container hidden">
+      <div class="prototype-header">
+        <h2 class="prototype-title"><i class="fa fa-cog mr-2"></i> 设置</h2>
+        <div class="flex space-x-2">
+          <button class="p-2 text-gray-400 hover:text-gray-600 transition-colors" onclick="openFullscreen('settings')">
+            <i class="fa fa-expand"></i>
+          </button>
+        </div>
+      </div>
+      <iframe id="settings-iframe" class="prototype-iframe" src="design/prototypes/settings.html"></iframe>
+    </div>
+
+    <!-- 帮助与支持原型 -->
+    <div id="help-support-prototype" class="prototype-container hidden">
+      <div class="prototype-header">
+        <h2 class="prototype-title"><i class="fa fa-question-circle mr-2"></i> 帮助与支持</h2>
+        <div class="flex space-x-2">
+          <button class="p-2 text-gray-400 hover:text-gray-600 transition-colors" onclick="openFullscreen('help-support')">
+            <i class="fa fa-expand"></i>
+          </button>
+        </div>
+      </div>
+      <iframe id="help-support-iframe" class="prototype-iframe" src="design/prototypes/help_support.html"></iframe>
+    </div>
+
+
+
+    <!-- 任务管理原型 -->
+    <div id="tasks-prototype" class="prototype-container hidden">
+      <div class="prototype-header">
+        <h2 class="prototype-title"><i class="fa fa-tasks mr-2"></i> 任务管理</h2>
+        <div class="flex space-x-2">
+          <button class="p-2 text-gray-400 hover:text-gray-600 transition-colors" onclick="openFullscreen('tasks')">
+            <i class="fa fa-expand"></i>
+          </button>
+        </div>
+      </div>
+      <iframe id="tasks-iframe" class="prototype-iframe" src="design/prototypes/tasks.html"></iframe>
+    </div>
+
+    <!-- 时间追踪原型 -->
+    <div id="time-tracking-prototype" class="prototype-container hidden">
+      <div class="prototype-header">
+        <h2 class="prototype-title"><i class="fa fa-clock-o mr-2"></i> 时间追踪</h2>
+        <div class="flex space-x-2">
+          <button class="p-2 text-gray-400 hover:text-gray-600 transition-colors" onclick="openFullscreen('time-tracking')">
+            <i class="fa fa-expand"></i>
+          </button>
+        </div>
+      </div>
+      <iframe id="time-tracking-iframe" class="prototype-iframe" src="design/prototypes/time_tracking.html"></iframe>
+    </div>
+
+    <!-- 报表统计原型 -->
+    <div id="reports-prototype" class="prototype-container hidden">
+      <div class="prototype-header">
+        <h2 class="prototype-title"><i class="fa fa-bar-chart mr-2"></i> 报表统计</h2>
+        <div class="flex space-x-2">
+          <button class="p-2 text-gray-400 hover:text-gray-600 transition-colors" onclick="openFullscreen('reports')">
+            <i class="fa fa-expand"></i>
+          </button>
+        </div>
+      </div>
+      <iframe id="reports-iframe" class="prototype-iframe" src="design/prototypes/reports.html"></iframe>
+    </div>
+
+    <!-- 日历视图原型 -->
+    <div id="calendar-prototype" class="prototype-container hidden">
+      <div class="prototype-header">
+        <h2 class="prototype-title"><i class="fa fa-calendar mr-2"></i> 日历视图</h2>
+        <div class="flex space-x-2">
+          <button class="p-2 text-gray-400 hover:text-gray-600 transition-colors" onclick="openFullscreen('calendar')">
+            <i class="fa fa-expand"></i>
+          </button>
+        </div>
+      </div>
+      <iframe id="calendar-iframe" class="prototype-iframe" src="design/prototypes/calendar.html"></iframe>
+    </div>
+
+    <!-- 登录页面原型 -->
+    <div id="login-prototype" class="prototype-container hidden">
+      <div class="prototype-header">
+        <h2 class="prototype-title"><i class="fa fa-sign-in mr-2"></i> 登录页面</h2>
+        <div class="flex space-x-2">
+          <button class="p-2 text-gray-400 hover:text-gray-600 transition-colors" onclick="openFullscreen('login')">
+            <i class="fa fa-expand"></i>
+          </button>
+        </div>
+      </div>
+      <iframe id="login-iframe" class="prototype-iframe" src="design/prototypes/login.html"></iframe>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="text-center text-gray-400 text-sm mt-16 pb-8">
+      <p>TaskFlow 高保真HTML原型 | 使用 Tailwind CSS 和 FontAwesome 构建</p>
+    </footer>
+  </div>
+
+  <script>
+    // 原型导航功能
+    document.addEventListener('DOMContentLoaded', function() {
+      const navButtons = document.querySelectorAll('.prototype-nav-btn');
+
+      // 默认显示仪表盘
+      document.getElementById('dashboard-prototype').classList.remove('hidden');
+
+      navButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          // 隐藏所有原型
+          document.querySelectorAll('.prototype-container').forEach(container => {
+            container.classList.add('hidden');
+          });
+
+          // 重置所有按钮样式
+          navButtons.forEach(btn => {
+            btn.classList.remove('bg-primary', 'text-white');
+            btn.classList.add('bg-gray-200', 'text-gray-700');
+          });
+
+          // 显示选中的原型
+          const target = this.getAttribute('data-target');
+          const prototype = document.getElementById(`${target}-prototype`);
+          if (prototype) {
+            prototype.classList.remove('hidden');
+
+            // 高亮当前按钮
+            this.classList.remove('bg-gray-200', 'text-gray-700');
+            this.classList.add('bg-primary', 'text-white');
+
+            // 滚动到顶部
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        });
+      });
+    });
+
+    // 全屏查看功能
+    function openFullscreen(prototypeName) {
+      const iframe = document.getElementById(`${prototypeName}-iframe`);
+      const src = iframe.src;
+      window.open(src, '_blank');
+    }
+  </script>
+</body>
+</html>

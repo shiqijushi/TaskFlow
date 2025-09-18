@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskFlow - 数据分析项目详情</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  <!-- 配置Tailwind自定义颜色和字体 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#0FC6C2',
+            success: '#00B42A',
+            warning: '#FF7D00',
+            danger: '#F53F3F',
+            dark: '#1D2129',
+            'gray-600': '#4E5969',
+            'gray-400': '#86909C',
+            'gray-100': '#F2F3F5',
+          },
+          fontFamily: {
+            inter: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .browser-window {
+        @apply rounded-lg overflow-hidden shadow-xl border border-gray-200 bg-white;
+      }
+      .browser-header {
+        @apply flex items-center px-4 py-3 bg-gray-100 border-b border-gray-200;
+      }
+      .browser-controls {
+        @apply flex space-x-2;
+      }
+      .browser-control {
+        @apply w-3 h-3 rounded-full;
+      }
+      .browser-address {
+        @apply flex-1 mx-4 px-3 py-1 bg-white rounded-full text-sm text-gray-600 border border-gray-300;
+      }
+      .sidebar-item {
+        @apply flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 hover:text-primary transition-colors rounded-md cursor-pointer;
+      }
+      .sidebar-item.active {
+        @apply bg-primary/10 text-primary font-medium;
+      }
+      .time-card {
+        @apply bg-white rounded-xl shadow-sm border border-gray-100 p-5 transition-all hover:shadow-md;
+      }
+      .timer-display {
+        @apply text-5xl font-bold text-dark text-center my-6;
+      }
+      .timer-button {
+        @apply px-6 py-3 rounded-md font-medium transition-all;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 font-inter min-h-screen p-4">
+  <!-- 浏览器窗口模拟 -->
+  <div class="browser-window w-full max-w-7xl mx-auto h-[800px] flex flex-col overflow-hidden">
+    <!-- 浏览器头部 -->
+    <div class="browser-header">
+      <div class="browser-controls">
+        <div class="browser-control bg-danger"></div>
+        <div class="browser-control bg-warning"></div>
+        <div class="browser-control bg-success"></div>
+      </div>
+      <div class="browser-address flex items-center">
+        <i class="fa fa-lock text-gray-400 mr-2"></i>
+        <span>taskflow.app/projects/data-analysis</span>
+      </div>
+    </div>
+    <!-- 页面内容 -->
+    <div class="flex flex-1 overflow-hidden">
+      <!-- 侧边栏 -->
+      <div class="w-64 bg-white border-r border-gray-200 p-4 flex flex-col overflow-y-auto">
+        <div class="flex items-center mb-8 p-3 bg-primary/10 rounded-lg">
+          <div class="w-10 h-10 bg-primary rounded-md flex items-center justify-center text-white font-bold text-xl mr-3">TF</div>
+          <div>
+            <h1 class="text-lg font-bold text-dark">TaskFlow</h1>
+            <p class="text-xs text-gray-400">高效任务管理</p>
+          </div>
+        </div>
+        <div class="space-y-1 mb-6">
+          <div class="sidebar-item" onclick="window.location.href='dashboard.html'">
+            <i class="fa fa-dashboard w-5 h-5 mr-3"></i>
+            <span>仪表盘</span>
+          </div>
+          <div class="sidebar-item" onclick="window.location.href='tasks.html'">
+            <i class="fa fa-tasks w-5 h-5 mr-3"></i>
+            <span>任务管理</span>
+          </div>
+          <div class="sidebar-item" onclick="window.location.href='time_tracking.html'">
+            <i class="fa fa-clock-o w-5 h-5 mr-3"></i>
+            <span>时间追踪</span>
+          </div>
+          <div class="sidebar-item" onclick="window.location.href='reports.html'">
+            <i class="fa fa-bar-chart w-5 h-5 mr-3"></i>
+            <span>报表统计</span>
+          </div>
+          <div class="sidebar-item" onclick="window.location.href='calendar.html'">
+            <i class="fa fa-calendar w-5 h-5 mr-3"></i>
+            <span>日历视图</span>
+          </div>
+        </div>
+        <div class="mb-6">
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-4 mb-2">项目</h3>
+          <div class="space-y-1">
+            <div class="sidebar-item" onclick="window.location.href='product_development.html'">
+              <i class="fa fa-folder w-5 h-5 mr-3"></i>
+              <span>产品研发</span>
+              <span class="ml-auto bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">12h</span>
+            </div>
+            <div class="sidebar-item" onclick="window.location.href='marketing.html'">
+              <i class="fa fa-folder w-5 h-5 mr-3"></i>
+              <span>市场推广</span>
+              <span class="ml-auto bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">8h</span>
+            </div>
+            <div class="sidebar-item active">
+              <i class="fa fa-folder w-5 h-5 mr-3"></i>
+              <span>数据分析</span>
+              <span class="ml-auto bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">5h</span>
+            </div>
+          </div>
+        </div>
+        <div class="border-t border-gray-100 pt-4 mt-auto">
+          <div class="sidebar-item">
+            <i class="fa fa-cog w-5 h-5 mr-3"></i>
+            <span>设置</span>
+          </div>
+          <div class="sidebar-item">
+            <i class="fa fa-question-circle w-5 h-5 mr-3"></i>
+            <span>帮助与支持</span>
+          </div>
+          <div class="flex items-center p-4 mt-4 bg-gray-100 rounded-md">
+            <img src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-1.2.1&auto=format&fit=crop&w=50&q=80" alt="用户头像" class="w-10 h-10 rounded-full mr-3 object-cover">
+            <div class="flex-1">
+              <p class="text-sm font-medium text-dark">张小明</p>
+              <p class="text-xs text-gray-400">高级产品经理</p>
+            </div>
+            <button class="text-gray-400 hover:text-dark">
+              <i class="fa fa-sign-out"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- 主内容区 -->
+      <div class="flex-1 overflow-y-auto p-6 bg-gray-50">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <div class="flex items-center mb-2">
+              <h2 class="text-2xl font-bold text-dark mr-3">数据分析</h2>
+              <span class="px-2 py-1 text-xs font-medium bg-teal-100 text-teal-500 rounded-full">进行中</span>
+            </div>
+            <p class="text-gray-400">负责数据收集、分析和可视化工作</p>
+          </div>
+          <div class="flex space-x-3">
+            <button class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors flex items-center">
+              <i class="fa fa-plus mr-2"></i>
+              <span>新建任务</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 项目统计概览 -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+          <div class="time-card">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-gray-600 font-medium">总工时</h3>
+              <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                <i class="fa fa-clock-o"></i>
+              </div>
+            </div>
+            <div class="flex items-baseline">
+              <span class="text-3xl font-bold text-dark">56.8h</span>
+              <span class="ml-2 text-success text-sm font-medium">+5.2h 本月</span>
+            </div>
+            <div class="mt-4 h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+              <div class="h-full bg-primary rounded-full" style="width: 28%"></div>
+            </div>
+            <p class="text-xs text-gray-400 mt-2">总任务 15</p>
+          </div>
+          <div class="time-card">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-gray-600 font-medium">团队成员</h3>
+              <div class="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center text-warning">
+                <i class="fa fa-users"></i>
+              </div>
+            </div>
+            <div class="flex items-baseline">
+              <span class="text-3xl font-bold text-dark">2</span>
+              <span class="ml-2 text-gray-400 text-sm font-medium">名成员</span>
+            </div>
+            <div class="flex -space-x-2 mt-4">
+              <img src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-1.2.1&auto=format&fit=crop&w=32&q=80" alt="团队成员" class="w-8 h-8 rounded-full border-2 border-white object-cover">
+              <img src="https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?ixlib=rb-1.2.1&auto=format&fit=crop&w=32&q=80" alt="团队成员" class="w-8 h-8 rounded-full border-2 border-white object-cover">
+            </div>
+          </div>
+        </div>
+
+        <!-- 项目时间分布 -->
+        <div class="time-card mb-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-medium text-dark">项目时间分布</h3>
+            <div class="flex space-x-2">
+              <button class="px-3 py-1 text-sm font-medium bg-primary/10 text-primary rounded-md">周</button>
+              <button class="px-3 py-1 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md transition-colors">月</button>
+              <button class="px-3 py-1 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md transition-colors">季度</button>
+            </div>
+          </div>
+          <div class="h-64">
+            <canvas id="projectTimeChart"></canvas>
+          </div>
+        </div>
+
+        <!-- 数据可视化展示 -->
+        <div class="time-card mb-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-medium text-dark">数据可视化</h3>
+            <div class="flex space-x-2">
+              <button class="px-3 py-1 text-sm font-medium bg-primary/10 text-primary rounded-md">日活数据</button>
+              <button class="px-3 py-1 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md transition-colors">转化率</button>
+              <button class="px-3 py-1 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md transition-colors">留存率</button>
+            </div>
+          </div>
+          <div class="h-64">
+            <canvas id="dataVisualizationChart"></canvas>
+          </div>
+        </div>
+
+        <!-- 任务计时 -->
+        <div class="time-card mb-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-dark">任务计时器</h3>
+            <select class="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all">
+              <option>用户行为分析</option>
+              <option>数据报表生成</option>
+              <option>数据清洗</option>
+              <option>API集成</option>
+              <option>新建任务...</option>
+            </select>
+          </div>
+          <div class="timer-display" id="timer">00:00:00</div>
+          <div class="flex justify-center space-x-4 mb-4">
+            <button id="startTimer" class="timer-button bg-primary text-white hover:bg-primary/90">
+              <i class="fa fa-play mr-2"></i>开始
+            </button>
+            <button id="pauseTimer" class="timer-button bg-gray-200 text-gray-600 hover:bg-gray-300" disabled>
+              <i class="fa fa-pause mr-2"></i>暂停
+            </button>
+            <button id="resetTimer" class="timer-button bg-gray-200 text-gray-600 hover:bg-gray-300" disabled>
+              <i class="fa fa-refresh mr-2"></i>重置
+            </button>
+          </div>
+        </div>
+
+        <!-- 最近时间记录 -->
+        <div class="time-card mb-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-medium text-dark">项目时间记录</h3>
+            <button class="text-sm text-primary hover:text-primary/80 transition-colors">
+              查看全部
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">任务名称</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">负责人</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">开始时间</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">结束时间</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">持续时间</th>
+                  <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="font-medium text-dark">用户行为分析</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <img src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-1.2.1&auto=format&fit=crop&w=32&q=80" alt="用户头像" class="w-6 h-6 rounded-full mr-2 object-cover">
+                      <span class="text-sm text-gray-900">张小明</span>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    10:00
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    11:30
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    1h 30m
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button class="text-primary hover:text-primary/80 mr-3">编辑</button>
+                    <button class="text-gray-400 hover:text-danger">删除</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="font-medium text-dark">数据报表生成</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <img src="https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?ixlib=rb-1.2.1&auto=format&fit=crop&w=32&q=80" alt="用户头像" class="w-6 h-6 rounded-full mr-2 object-cover">
+                      <span class="text-sm text-gray-900">李数据</span>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    昨天 13:00
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    昨天 16:00
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    3h
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button class="text-primary hover:text-primary/80 mr-3">编辑</button>
+                    <button class="text-gray-400 hover:text-danger">删除</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="font-medium text-dark">数据清洗</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <img src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-1.2.1&auto=format&fit=crop&w=32&q=80" alt="用户头像" class="w-6 h-6 rounded-full mr-2 object-cover">
+                      <span class="text-sm text-gray-900">张小明</span>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    前天 09:00
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    前天 11:30
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    2h 30m
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button class="text-primary hover:text-primary/80 mr-3">编辑</button>
+                    <button class="text-gray-400 hover:text-danger">删除</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 项目时间分布图表
+    const timeCtx = document.getElementById('projectTimeChart').getContext('2d');
+    const projectTimeChart = new Chart(timeCtx, {
+      type: 'line',
+      data: {
+        labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+        datasets: [{
+          label: '投入工时',
+          data: [1.2, 0.8, 2.0, 1.5, 0.5, 0.3, 0.2],
+          borderColor: '#0FC6C2',
+          backgroundColor: 'rgba(15, 198, 194, 0.1)',
+          tension: 0.3,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: '小时'
+            }
+          }
+        }
+      }
+    });
+
+    // 数据可视化图表
+    const dataCtx = document.getElementById('dataVisualizationChart').getContext('2d');
+    const dataVisualizationChart = new Chart(dataCtx, {
+      type: 'bar',
+      data: {
+        labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+        datasets: [{
+          label: '日活跃用户',
+          data: [1200, 1900, 3000, 5000, 8000, 12000],
+          backgroundColor: '#0FC6C2',
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: '用户数'
+            }
+          }
+        }
+      }
+    });
+
+    // 计时器功能
+    let timerInterval;
+    let seconds = 0;
+    const timerDisplay = document.getElementById('timer');
+    const startButton = document.getElementById('startTimer');
+    const pauseButton = document.getElementById('pauseTimer');
+    const resetButton = document.getElementById('resetTimer');
+
+    startButton.addEventListener('click', startTimer);
+    pauseButton.addEventListener('click', pauseTimer);
+    resetButton.addEventListener('click', resetTimer);
+
+    function startTimer() {
+      startButton.disabled = true;
+      pauseButton.disabled = false;
+      resetButton.disabled = false;
+
+      timerInterval = setInterval(() => {
+        seconds++;
+        updateTimerDisplay();
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      startButton.disabled = false;
+      pauseButton.disabled = true;
+
+      clearInterval(timerInterval);
+    }
+
+    function resetTimer() {
+      startButton.disabled = false;
+      pauseButton.disabled = true;
+      resetButton.disabled = true;
+
+      clearInterval(timerInterval);
+      seconds = 0;
+      updateTimerDisplay();
+    }
+
+    function updateTimerDisplay() {
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      const remainingSeconds = seconds % 60;
+
+      timerDisplay.textContent = `${pad(hours)}:${pad(minutes)}:${pad(remainingSeconds)}`;
+    }
+
+    function pad(number) {
+      return number.toString().padStart(2, '0');
+    }
+
+    // 实现表格编辑和删除功能
+    const buttons = document.querySelectorAll('button');
+    const editButtons = Array.from(buttons).filter(button => button.textContent.includes('编辑'));
+    const deleteButtons = Array.from(buttons).filter(button => button.textContent.includes('删除'));
+
+    // 编辑按钮点击事件
+    editButtons.forEach(button => {
+      button.addEventListener('click', function(e) {
+        e.preventDefault();
+        const row = this.closest('tr');
+        const taskName = row.querySelector('td:first-child .font-medium').textContent;
+        alert(`编辑任务: ${taskName}`);
+      });
+    });
+
+    // 删除按钮点击事件
+    deleteButtons.forEach(button => {
+      button.addEventListener('click', function(e) {
+        e.preventDefault();
+        const row = this.closest('tr');
+        const taskName = row.querySelector('td:first-child .font-medium').textContent;
+        if (confirm(`确定要删除任务 ${taskName} 吗？`)) {
+          row.remove();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+version: '3.8'
+
+services:
+  # Nginx 负载均衡器
+  nginx:
+    image: nginx:alpine
+    container_name: taskflow-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - backend-1
+      - backend-2
+      - frontend
+    networks:
+      - taskflow-network
+
+  # MongoDB 副本集
+  mongodb-primary:
+    image: mongo:7
+    container_name: taskflow-mongodb-primary
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_REPLICA_SET_NAME: rs0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_primary_data:/data/db
+      - ./scripts/init-replica.js:/docker-entrypoint-initdb.d/init-replica.js:ro
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    networks:
+      - taskflow-network
+
+  mongodb-secondary:
+    image: mongo:7
+    container_name: taskflow-mongodb-secondary
+    restart: unless-stopped
+    environment:
+      MONGO_REPLICA_SET_NAME: rs0
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb_secondary_data:/data/db
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    depends_on:
+      - mongodb-primary
+    networks:
+      - taskflow-network
+
+  # Redis 集群
+  redis-master:
+    image: redis:7-alpine
+    container_name: taskflow-redis-master
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_master_data:/data
+      - ./redis/redis-master.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - taskflow-network
+
+  redis-slave:
+    image: redis:7-alpine
+    container_name: taskflow-redis-slave
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_slave_data:/data
+      - ./redis/redis-slave.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    depends_on:
+      - redis-master
+    networks:
+      - taskflow-network
+
+  # 后端服务实例 1
+  backend-1:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: taskflow-backend-1
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      DATABASE_URL: mongodb://root:${MONGO_ROOT_PASSWORD}@mongodb-primary:27017,mongodb-secondary:27017/taskflow?authSource=admin&replicaSet=rs0
+      REDIS_URL: redis://redis-master:6379
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      INSTANCE_ID: backend-1
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - ./logs/backend-1:/app/logs
+    depends_on:
+      - mongodb-primary
+      - redis-master
+    networks:
+      - taskflow-network
+
+  # 后端服务实例 2
+  backend-2:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: taskflow-backend-2
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      DATABASE_URL: mongodb://root:${MONGO_ROOT_PASSWORD}@mongodb-primary:27017,mongodb-secondary:27017/taskflow?authSource=admin&replicaSet=rs0
+      REDIS_URL: redis://redis-master:6379
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      INSTANCE_ID: backend-2
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - ./logs/backend-2:/app/logs
+    depends_on:
+      - mongodb-primary
+      - redis-master
+    networks:
+      - taskflow-network
+
+  # 前端服务
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: taskflow-frontend
+    restart: unless-stopped
+    networks:
+      - taskflow-network
+
+  # 监控和日志收集
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.8.0
+    container_name: taskflow-filebeat
+    restart: unless-stopped
+    user: root
+    volumes:
+      - ./monitoring/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./logs:/var/log/taskflow:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - elasticsearch
+    networks:
+      - taskflow-network
+
+volumes:
+  mongodb_primary_data:
+    driver: local
+  mongodb_secondary_data:
+    driver: local
+  redis_master_data:
+    driver: local
+  redis_slave_data:
+    driver: local
+
+networks:
+  taskflow-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

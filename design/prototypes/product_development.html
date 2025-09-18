@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskFlow - 产品研发项目详情</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  <!-- 配置Tailwind自定义颜色和字体 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            success: '#00B42A',
+            warning: '#FF7D00',
+            danger: '#F53F3F',
+            dark: '#1D2129',
+            'gray-600': '#4E5969',
+            'gray-400': '#86909C',
+            'gray-100': '#F2F3F5',
+          },
+          fontFamily: {
+            inter: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .browser-window {
+        @apply rounded-lg overflow-hidden shadow-xl border border-gray-200 bg-white;
+      }
+      .browser-header {
+        @apply flex items-center px-4 py-3 bg-gray-100 border-b border-gray-200;
+      }
+      .browser-controls {
+        @apply flex space-x-2;
+      }
+      .browser-control {
+        @apply w-3 h-3 rounded-full;
+      }
+      .browser-address {
+        @apply flex-1 mx-4 px-3 py-1 bg-white rounded-full text-sm text-gray-600 border border-gray-300;
+      }
+      .sidebar-item {
+        @apply flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 hover:text-primary transition-colors rounded-md cursor-pointer;
+      }
+      .sidebar-item.active {
+        @apply bg-primary/10 text-primary font-medium;
+      }
+      .time-card {
+        @apply bg-white rounded-xl shadow-sm border border-gray-100 p-5 transition-all hover:shadow-md;
+      }
+      .timer-display {
+        @apply text-5xl font-bold text-dark text-center my-6;
+      }
+      .timer-button {
+        @apply px-6 py-3 rounded-md font-medium transition-all;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 font-inter min-h-screen p-4">
+  <!-- 浏览器窗口模拟 -->
+  <div class="browser-window w-full max-w-7xl mx-auto h-[800px] flex flex-col overflow-hidden">
+    <!-- 浏览器头部 -->
+    <div class="browser-header">
+      <div class="browser-controls">
+        <div class="browser-control bg-danger"></div>
+        <div class="browser-control bg-warning"></div>
+        <div class="browser-control bg-success"></div>
+      </div>
+      <div class="browser-address flex items-center">
+        <i class="fa fa-lock text-gray-400 mr-2"></i>
+        <span>taskflow.app/projects/product-development</span>
+      </div>
+    </div>
+    <!-- 页面内容 -->
+    <div class="flex flex-1 overflow-hidden">
+      <!-- 侧边栏 -->
+      <div class="w-64 bg-white border-r border-gray-200 p-4 flex flex-col overflow-y-auto">
+        <div class="flex items-center mb-8 p-3 bg-primary/10 rounded-lg">
+          <div class="w-10 h-10 bg-primary rounded-md flex items-center justify-center text-white font-bold text-xl mr-3">TF</div>
+          <div>
+            <h1 class="text-lg font-bold text-dark">TaskFlow</h1>
+            <p class="text-xs text-gray-400">高效任务管理</p>
+          </div>
+        </div>
+        <div class="space-y-1 mb-6">
+          <div class="sidebar-item" onclick="window.location.href='dashboard.html'">
+            <i class="fa fa-dashboard w-5 h-5 mr-3"></i>
+            <span>仪表盘</span>
+          </div>
+          <div class="sidebar-item" onclick="window.location.href='tasks.html'">
+            <i class="fa fa-tasks w-5 h-5 mr-3"></i>
+            <span>任务管理</span>
+          </div>
+          <div class="sidebar-item" onclick="window.location.href='time_tracking.html'">
+            <i class="fa fa-clock-o w-5 h-5 mr-3"></i>
+            <span>时间追踪</span>
+          </div>
+          <div class="sidebar-item" onclick="window.location.href='reports.html'">
+            <i class="fa fa-bar-chart w-5 h-5 mr-3"></i>
+            <span>报表统计</span>
+          </div>
+          <div class="sidebar-item" onclick="window.location.href='calendar.html'">
+            <i class="fa fa-calendar w-5 h-5 mr-3"></i>
+            <span>日历视图</span>
+          </div>
+        </div>
+        <div class="mb-6">
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-4 mb-2">项目</h3>
+          <div class="space-y-1">
+            <div class="sidebar-item active">
+              <i class="fa fa-folder w-5 h-5 mr-3"></i>
+              <span>产品研发</span>
+              <span class="ml-auto bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">12h</span>
+            </div>
+            <div class="sidebar-item" onclick="window.location.href='marketing.html'">
+              <i class="fa fa-folder w-5 h-5 mr-3"></i>
+              <span>市场推广</span>
+              <span class="ml-auto bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">8h</span>
+            </div>
+            <div class="sidebar-item" onclick="window.location.href='data_analysis.html'">
+              <i class="fa fa-folder w-5 h-5 mr-3"></i>
+              <span>数据分析</span>
+              <span class="ml-auto bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">5h</span>
+            </div>
+          </div>
+        </div>
+        <div class="border-t border-gray-100 pt-4 mt-auto">
+          <div class="sidebar-item">
+            <i class="fa fa-cog w-5 h-5 mr-3"></i>
+            <span>设置</span>
+          </div>
+          <div class="sidebar-item">
+            <i class="fa fa-question-circle w-5 h-5 mr-3"></i>
+            <span>帮助与支持</span>
+          </div>
+          <div class="flex items-center p-4 mt-4 bg-gray-100 rounded-md">
+            <img src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-1.2.1&auto=format&fit=crop&w=50&q=80" alt="用户头像" class="w-10 h-10 rounded-full mr-3 object-cover">
+            <div class="flex-1">
+              <p class="text-sm font-medium text-dark">张小明</p>
+              <p class="text-xs text-gray-400">高级产品经理</p>
+            </div>
+            <button class="text-gray-400 hover:text-dark">
+              <i class="fa fa-sign-out"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- 主内容区 -->
+      <div class="flex-1 overflow-y-auto p-6 bg-gray-50">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <div class="flex items-center mb-2">
+              <h2 class="text-2xl font-bold text-dark mr-3">产品研发</h2>
+              <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-500 rounded-full">进行中</span>
+            </div>
+            <p class="text-gray-400">负责产品的设计、开发和优化工作</p>
+          </div>
+          <div class="flex space-x-3">
+            <button class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors flex items-center">
+              <i class="fa fa-plus mr-2"></i>
+              <span>新建任务</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 项目统计概览 -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+          <div class="time-card">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-gray-600 font-medium">总工时</h3>
+              <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                <i class="fa fa-clock-o"></i>
+              </div>
+            </div>
+            <div class="flex items-baseline">
+              <span class="text-3xl font-bold text-dark">124.5h</span>
+              <span class="ml-2 text-success text-sm font-medium">+12.3h 本月</span>
+            </div>
+            <div class="mt-4 h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+              <div class="h-full bg-primary rounded-full" style="width: 62%

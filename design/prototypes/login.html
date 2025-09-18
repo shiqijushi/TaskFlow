@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskFlow - 登录</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <!-- 配置Tailwind自定义颜色和字体 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            success: '#00B42A',
+            warning: '#FF7D00',
+            danger: '#F53F3F',
+            dark: '#1D2129',
+            'gray-600': '#4E5969',
+            'gray-400': '#86909C',
+            'gray-100': '#F2F3F5',
+          },
+          fontFamily: {
+            inter: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .browser-window {
+        @apply rounded-lg overflow-hidden shadow-xl border border-gray-200 bg-white;
+      }
+      .browser-header {
+        @apply flex items-center px-4 py-3 bg-gray-100 border-b border-gray-200;
+      }
+      .browser-controls {
+        @apply flex space-x-2;
+      }
+      .browser-control {
+        @apply w-3 h-3 rounded-full;
+      }
+      .browser-address {
+        @apply flex-1 mx-4 px-3 py-1 bg-white rounded-full text-sm text-gray-600 border border-gray-300;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 font-inter min-h-screen flex items-center justify-center p-4">
+  <!-- 浏览器窗口模拟 -->
+  <div class="browser-window w-full max-w-md mx-auto transform transition-all duration-300 hover:scale-[1.01]">
+    <!-- 浏览器头部 -->
+    <div class="browser-header">
+      <div class="browser-controls">
+        <div class="browser-control bg-danger"></div>
+        <div class="browser-control bg-warning"></div>
+        <div class="browser-control bg-success"></div>
+      </div>
+      <div class="browser-address flex items-center">
+        <i class="fa fa-lock text-gray-400 mr-2"></i>
+        <span>taskflow.app/login</span>
+      </div>
+    </div>
+    <!-- 页面内容 -->
+    <div class="p-6 md:p-8">
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-dark mb-2">TaskFlow</h1>
+        <p class="text-gray-600">高效管理你的任务和时间</p>
+      </div>
+      <form class="space-y-4" role="form" aria-label="用户登录表单">
+        <div class="space-y-2">
+          <label for="email" class="block text-sm font-medium text-gray-600">邮箱</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i class="fa fa-envelope text-gray-400"></i>
+            </div>
+            <input type="email" id="email" required aria-describedby="email-help" class="pl-10 block w-full rounded-md border border-gray-300 py-3 px-4 text-dark placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all" placeholder="请输入你的邮箱">
+          </div>
+        </div>
+        <div class="space-y-2">
+          <label for="password" class="block text-sm font-medium text-gray-600">密码</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i class="fa fa-lock text-gray-400"></i>
+            </div>
+            <input type="password" id="password" required aria-describedby="password-help" class="pl-10 block w-full rounded-md border border-gray-300 py-3 px-4 text-dark placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all" placeholder="请输入你的密码">
+            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+              <button type="button" class="text-gray-400 hover:text-dark">
+                <i class="fa fa-eye"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary">
+            <label for="remember-me" class="ml-2 block text-sm text-gray-600">记住我</label>
+          </div>
+          <a href="#" class="text-sm font-medium text-primary hover:text-primary/80 transition-colors">忘记密码?</a>
+        </div>
+        <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all">登录</button>
+      </form>
+      <div class="mt-6 text-center">
+        <p class="text-sm text-gray-600">
+          还没有账号? <a href="#" class="font-medium text-primary hover:text-primary/80 transition-colors">立即注册</a>
+        </p>
+      </div>
+      <div class="mt-8 border-t border-gray-200 pt-6">
+        <h2 class="text-sm font-medium text-gray-600 text-center mb-4">或者使用以下方式登录</h2>
+        <div class="flex justify-center space-x-4">
+          <button class="flex items-center justify-center p-2 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors">
+            <i class="fa fa-google text-xl"></i>
+          </button>
+          <button class="flex items-center justify-center p-2 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors">
+            <i class="fa fa-github text-xl"></i>
+          </button>
+          <button class="flex items-center justify-center p-2 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors">
+            <i class="fa fa-microsoft text-xl"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

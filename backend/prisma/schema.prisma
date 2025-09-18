@@ -1,0 +1,119 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 用户模型
+model User {
+  id        String   @id @default(cuid())
+  name      String   @db.VarChar(50)
+  email     String   @unique @db.VarChar(255)
+  password  String   @db.VarChar(255)
+  avatar    String?  @db.VarChar(500)
+  roles     Role[]   @default([MEMBER])
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // 关系
+  createdTasks    Task[]    @relation("TaskCreator")
+  assignedTasks   Task[]    @relation("TaskAssignee")
+  createdProjects Project[] @relation("ProjectCreator")
+  projectMembers  Project[] @relation("ProjectMembers")
+
+  @@index([email])
+  @@index([createdAt])
+  @@map("users")
+}
+
+// 项目模型
+model Project {
+  id          String        @id @default(cuid())
+  name        String        @db.VarChar(100)
+  description String?       @db.Text
+  status      ProjectStatus @default(PLANNING)
+  progress    Int           @default(0) @db.SmallInt
+  dueDate     DateTime?     @map("due_date")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  // 关系
+  createdBy   String @map("created_by")
+  creator     User   @relation("ProjectCreator", fields: [createdBy], references: [id])
+  members     User[] @relation("ProjectMembers")
+  tasks       Task[]
+
+  @@index([createdBy])
+  @@index([status])
+  @@index([dueDate])
+  @@index([createdAt])
+  @@map("projects")
+}
+
+// 任务模型
+model Task {
+  id          String     @id @default(cuid())
+  title       String     @db.VarChar(200)
+  description String?    @db.Text
+  status      TaskStatus @default(TODO)
+  priority    Priority   @default(MEDIUM)
+  dueDate     DateTime?  @map("due_date")
+  tags        String[]   @default([])
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  // 关系
+  assigneeId String  @map("assignee_id")
+  assignee   User    @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  createdBy  String  @map("created_by")
+  creator    User    @relation("TaskCreator", fields: [createdBy], references: [id])
+  projectId  String? @map("project_id")
+  project    Project? @relation(fields: [projectId], references: [id])
+
+  @@index([assigneeId, status])
+  @@index([createdBy])
+  @@index([dueDate])
+  @@index([priority])
+  @@index([projectId])
+  @@index([createdAt])
+  @@map("tasks")
+}
+
+// 枚举类型
+enum Role {
+  ADMIN
+  MANAGER
+  MEMBER
+}
+
+enum ProjectStatus {
+  PLANNING
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  COMPLETED
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
